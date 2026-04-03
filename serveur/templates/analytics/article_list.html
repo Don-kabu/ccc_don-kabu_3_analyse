@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Articles suivis – Digital Scholar{% endblock %}
+
+{% block content %}
+<h1 class="page-title" style="margin-bottom:6px">Articles suivis</h1>
+<p class="page-subtitle">{{ articles|length }} article{% if articles|length != 1 %}s{% endif %} enregistré{% if articles|length != 1 %}s{% endif %}.</p>
+
+<div class="article-list" style="margin-top:24px">
+  {% for article in articles %}
+  <div class="article-row">
+    <div class="art-icon">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+    </div>
+    <div class="art-info">
+      <a href="{% url 'analytics:article_detail' article.id %}">
+        <div class="art-title">{{ article.title }}</div>
+      </a>
+      <div class="art-date">{{ article.display_name }} • {{ article.tags|default:"—" }}</div>
+    </div>
+    <div>
+      <div class="art-reads">{{ article.total_reads }}</div>
+      <div class="art-reads-label">Vues</div>
+    </div>
+  </div>
+  {% empty %}
+  <p style="color:var(--text-muted);padding:20px 0">Aucun article reçu du client pour le moment.</p>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block title %}{{ article.title }} | EduTrack{% endblock %}
+
+{% block content %}
+<article class="reader" data-article-id="{{ article.id }}">
+    <header>
+        <p class="eyebrow">Article pedagogique</p>
+        <h1>{{ article.title }}</h1>
+        <p class="meta">Par {{ article.author }} • {% if article.published_at %}{{ article.published_at|date:'d/m/Y' }}{% else %}non publie{% endif %}</p>
+        {% if article.illustration_url %}
+            <img src="{{ article.illustration_url }}" alt="Illustration de {{ article.title }}" class="hero-image">
+        {% endif %}
+    </header>
+
+    <section id="section-intro" class="track-section" data-section="introduction">
+        <h2>Introduction</h2>
+        <div class="rich-content">{{ article.intro|safe }}</div>
+    </section>
+
+    <section id="section-objectives" class="track-section" data-section="objectifs">
+        <h2>Objectifs d'apprentissage</h2>
+        <ul>
+            {% for obj in objectives %}
+                <li>{{ obj }}</li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section id="section-content" class="track-section" data-section="contenu">
+        <h2>Contenu</h2>
+        <div class="rich-content">{{ article.content|safe }}</div>
+    </section>
+
+    <section id="section-conclusion" class="track-section" data-section="conclusion">
+        <h2>Conclusion</h2>
+        <div class="rich-content">{{ article.conclusion|safe }}</div>
+        <h3>Questions de reflexion</h3>
+        <ul>
+            {% for question in reflection_questions %}
+                <li>{{ question }}</li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section id="section-resources" class="track-section" data-section="ressources">
+        <h2>Ressources supplementaires</h2>
+        {% if resources %}
+            <ul>
+                {% for res in resources %}
+                    <li>{{ res }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Aucune ressource supplementaire pour le moment.</p>
+        {% endif %}
+        <div class="tags">
+            {% for tag in article.tags.all %}
+                <a href="{% url 'blog:article_list' %}?tag={{ tag.slug }}" class="tag">#{{ tag.name }}</a>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="comment-box">
+        <h2>Commentaires et questions des lecteurs</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ comment_form.as_p }}
+            <button type="submit" class="btn btn-primary">Envoyer</button>
+        </form>
+
+        <div class="stack">
+            {% for comment in comments %}
+                <article class="comment">
+                    <p class="meta">{{ comment.name }} • {{ comment.created_at|date:'d/m/Y H:i' }}</p>
+                    <p>{{ comment.message|linebreaksbr }}</p>
+                </article>
+            {% empty %}
+                <p>Aucun commentaire pour le moment.</p>
+            {% endfor %}
+        </div>
+    </section>
+</article>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/analytics.js' %}"></script>
+<script>
+    window.eduTrackAnalytics = {
+        articleId: Number("{{ article.id }}"),
+        endpoint: "{% url 'blog:track_analytics' %}",
+    };
+</script>
+{% endblock %}

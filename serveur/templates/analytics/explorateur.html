@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Explorateur de Mesures – Digital Scholar{% endblock %}
+
+{% block content %}
+<h1 class="page-title" style="margin-bottom:6px">Explorateur de Mesures</h1>
+<p class="page-subtitle">Analyse approfondie des performances d'exposition et de visibilité des contenus académiques.</p>
+
+<!-- Filter zone -->
+<div class="filter-zone" style="margin-top:28px">
+  <div class="fz-label">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+    </svg>
+    Zone de filtrage avancée
+  </div>
+  <form method="get">
+    <div class="filter-grid">
+      <div class="filter-field">
+        <label>Période</label>
+        <input type="date" name="date" value="{{ selected_date }}" />
+      </div>
+      <div class="filter-field">
+        <label>Enseignant</label>
+        <select name="teacher">
+          <option value="">Tous les enseignants</option>
+          {% for t in teachers %}
+          <option value="{{ t.id }}" {% if selected_teacher == t.id|stringformat:"s" %}selected{% endif %}>{{ t.display_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-field">
+        <label>Catégorie</label>
+        <select name="category">
+          <option value="">Toutes les catégories</option>
+          {% for cat in categories %}
+          <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-field">
+        <label>Type d'appareil</label>
+        <div class="toggle-group">
+          {% for dev in devices %}
+          <a href="?date={{ selected_date }}&teacher={{ selected_teacher }}&category={{ selected_category }}&device={{ dev }}"
+             class="toggle-btn {% if selected_device == dev %}active{% endif %}">{{ dev }}</a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:16px">
+      <button type="submit" class="toggle-btn active" style="font-size:.85rem;padding:9px 20px">Appliquer</button>
+    </div>
+  </form>
+</div>
+
+<!-- Bar chart by category -->
+<h2 style="font-size:1rem;font-weight:700;margin-bottom:4px">Tendance par Catégorie</h2>
+<p class="page-subtitle" style="margin-bottom:16px">Moyenne de visibilité par jour de la semaine</p>
+
+<div class="chart-card" style="margin-top:0">
+  <canvas id="barChart" height="100"></canvas>
+  {% if dominant_cat %}
+  <p style="font-size:.78rem;color:#527a55;margin-top:10px;">
+    La <strong>{{ dominant_cat }}</strong> domine l'engagement cette semaine (+{{ dominant_pct }}%)
+  </p>
+  {% endif %}
+</div>
+
+<!-- Raw data -->
+<h2 style="font-size:1rem;font-weight:700;margin-top:32px;margin-bottom:4px">Données brutes</h2>
+<p class="page-subtitle" style="margin-bottom:16px">{{ events|length }} mesure{% if events|length != 1 %}s{% endif %} capturée{% if events|length != 1 %}s{% endif %}</p>
+
+{% for ev in events %}
+<div class="event-card">
+  <div class="event-tags">
+    {% if ev.article_id %}
+      <span class="tag-chip blue">#{{ ev.article_id|stringformat:"04d" }}</span>
+      {% if ev.tag_name %}
+        <span class="tag-chip {% if ev.tag_name == 'Sciences' %}sci{% elif ev.tag_name == 'Histoire' %}green{% else %}blue{% endif %}">{{ ev.tag_name|upper }}</span>
+      {% endif %}
+    {% endif %}
+  </div>
+  <div class="event-teacher">{{ ev.display_name|default:"Lecteur anonyme" }}</div>
+  <div class="event-meta">
+    <div>
+      <div class="meta-label">Exposition</div>
+      <div class="meta-value">{{ ev.duration_seconds }} s</div>
+    </div>
+    <div>
+      <div class="meta-label">Visibilité</div>
+      <div class="meta-value">{{ ev.visibility_pct }}%</div>
+    </div>
+    <div>
+      <div class="meta-label">Section</div>
+      <div class="meta-value">{{ ev.section|capfirst|default:"—" }}</div>
+    </div>
+  </div>
+</div>
+{% empty %}
+<p style="color:var(--text-muted);padding:20px 0">Aucun événement enregistré pour ces filtres.</p>
+{% endfor %}
+
+<!-- Export -->
+<a href="{% url 'analytics:explorateur' %}?export=csv&date={{ selected_date }}&teacher={{ selected_teacher }}&category={{ selected_category }}&device={{ selected_device }}"
+   class="btn-export">
+  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+  Exporter vers Excel
+</a>
+<p class="btn-export-note">Format CSV supporté • Mise à jour il y a 2m</p>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+const barData   = {{ bar_data_json|safe }};
+const catColors = {{ cat_colors_json|safe }};
+const days      = {{ days_fr|safe }};
+
+const datasets = Object.entries(barData).map(([cat, vals]) => ({
+  label: cat,
+  data: vals,
+  backgroundColor: catColors[cat] || '#254e70',
+  borderRadius: 4,
+  barPercentage: 0.55,
+}));
+
+new Chart(document.getElementById('barChart'), {
+  type: 'bar',
+  data: { labels: days, datasets },
+  options: {
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { color: '#6b7a8d', font: { size: 11 }, boxWidth: 12, padding: 16 }
+      }
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { color: '#6b7a8d', font: { size: 11 } } },
+      y: { grid: { color: '#e2e5e9' }, ticks: { color: '#6b7a8d', font: { size: 11 } }, beginAtZero: true }
+    },
+  }
+});
+</script>
+{% endblock %}

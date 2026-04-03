@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Tableau de bord – Digital Scholar{% endblock %}
+
+{% block content %}
+<div class="page-label">Tableau de bord</div>
+<h1 class="page-title">Bonjour, Archiviste.</h1>
+<p class="page-subtitle">Consultez l'état actuel de votre écosystème pédagogique et les<br>performances de vos ressources.</p>
+
+<!-- KPI row -->
+<div class="kpi-row">
+  <div class="kpi-card">
+    <div class="kpi-icon">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    </div>
+    <div>
+      <div class="kpi-value">{{ total_articles }}</div>
+      <div class="kpi-label">Articles suivis</div>
+    </div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-icon">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </div>
+    <div>
+      <div class="kpi-value">{{ total_teachers }}</div>
+      <div class="kpi-label">Enseignants</div>
+    </div>
+  </div>
+</div>
+
+<!-- Teacher of the week -->
+<div class="teacher-week">
+  <div class="week-label">Distinction hebdomadaire</div>
+  {% if top_teacher %}
+    <div class="avatar-lg">{{ top_teacher.display_name|slice:":1"|upper }}</div>
+    <div class="teacher-name">Enseignant de la Semaine : {{ top_teacher.display_name }}</div>
+    <div class="teacher-quote">"La pédagogie n'est pas de remplir des vases,<br>mais d'allumer des feux."</div>
+    <a href="#" class="btn-profile">Voir le profil complet</a>
+  {% else %}
+    <div class="teacher-name" style="color:var(--text-muted);margin-top:20px;">Aucune donnée disponible cette semaine.</div>
+  {% endif %}
+</div>
+
+<!-- Consultation trend chart -->
+<div class="chart-card">
+  <div class="chart-header">
+    <span class="chart-title">Tendance de Consultation</span>
+    {% if pct_change >= 0 %}
+      <span class="badge-positive">+{{ pct_change }}% ce mois</span>
+    {% else %}
+      <span class="badge-negative">{{ pct_change }}% ce mois</span>
+    {% endif %}
+  </div>
+  <canvas id="trendChart" height="90"></canvas>
+</div>
+
+<!-- Top articles -->
+<div class="article-list">
+  <h2>Articles les plus performants</h2>
+  {% for article in top_articles %}
+  <div class="article-row">
+    <div class="art-icon">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <div class="art-info">
+      <a href="{% url 'analytics:article_detail' article.id %}">
+        <div class="art-title">{{ article.title }}</div>
+      </a>
+      <div class="art-date">Publié le {{ article.published_at|date:"j N"|default:"—" }}</div>
+    </div>
+    <div>
+      <div class="art-reads">{{ article.total_reads }}</div>
+      <div class="art-reads-label">Vues</div>
+    </div>
+  </div>
+  {% empty %}
+  <p style="color:var(--text-muted);padding:20px 0;">Aucun article suivi pour le moment.</p>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+const months = {{ months_fr|safe }};
+const reads  = {{ monthly_reads }};
+
+new Chart(document.getElementById('trendChart'), {
+  type: 'line',
+  data: {
+    labels: months,
+    datasets: [{
+      data: reads,
+      borderColor: '#254e70',
+      backgroundColor: 'rgba(37,78,112,.08)',
+      borderWidth: 2,
+      pointRadius: 3,
+      pointBackgroundColor: '#254e70',
+      tension: 0.4,
+      fill: true,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, ticks: { color: '#6b7a8d', font: { size: 11 } } },
+      y: { grid: { color: '#e2e5e9' }, ticks: { color: '#6b7a8d', font: { size: 11 } }, beginAtZero: true }
+    },
+  }
+});
+</script>
+{% endblock %}

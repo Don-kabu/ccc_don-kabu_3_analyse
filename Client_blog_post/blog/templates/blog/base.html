@@ -1,0 +1,82 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}EduTrack CMS{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,700&family=Public+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/site.css' %}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <header class="topbar">
+        <div class="container topbar-inner">
+            <a href="{% url 'blog:home' %}" class="brand">EduTrack</a>
+            <nav class="menu">
+                <a href="{% url 'blog:article_list' %}" class="icon-link" aria-label="Explorer" title="Explorer">
+                    <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M11 4a7 7 0 1 0 4.4 12.4l3.6 3.6a1 1 0 0 0 1.4-1.4l-3.6-3.6A7 7 0 0 0 11 4Zm0 2a5 5 0 1 1 0 10 5 5 0 0 1 0-10Z" fill="currentColor"/>
+                    </svg>
+                    <span class="sr-only">Explorer</span>
+                </a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'blog:author_dashboard' %}" class="icon-link" aria-label="Dashboard" title="Dashboard">
+                        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M4 4h7v7H4V4Zm9 0h7v4h-7V4ZM4 13h4v7H4v-7Zm6 0h10v7H10v-7Z" fill="currentColor"/>
+                        </svg>
+                        <span class="sr-only">Dashboard</span>
+                    </a>
+                    <a href="{% url 'blog:article_create' %}" class="icon-link" aria-label="Publier" title="Publier">
+                        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M11 5a1 1 0 0 1 2 0v6h6a1 1 0 1 1 0 2h-6v6a1 1 0 1 1-2 0v-6H5a1 1 0 1 1 0-2h6V5Z" fill="currentColor"/>
+                        </svg>
+                        <span class="sr-only">Publier</span>
+                    </a>
+                    <a href="{% url 'logout' %}" class="icon-link" aria-label="Deconnexion" title="Deconnexion">
+                        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M10 4a1 1 0 0 1 0 2H7v12h3a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h4Zm6.3 3.3a1 1 0 0 1 1.4 0l4 4a1 1 0 0 1 0 1.4l-4 4a1 1 0 1 1-1.4-1.4l2.3-2.3H11a1 1 0 1 1 0-2h7.6l-2.3-2.3a1 1 0 0 1 0-1.4Z" fill="currentColor"/>
+                        </svg>
+                        <span class="sr-only">Deconnexion</span>
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="icon-link" aria-label="Connexion auteur" title="Connexion auteur">
+                        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 3a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 12c4.1 0 7.5 2.3 8.8 5.7a1 1 0 0 1-.9 1.3H4.1a1 1 0 0 1-.9-1.3C4.5 17.3 7.9 15 12 15Z" fill="currentColor"/>
+                        </svg>
+                        <span class="sr-only">Connexion auteur</span>
+                    </a>
+                    <a href="{% url 'blog:signup' %}" class="icon-link" aria-label="Creer un compte" title="Creer un compte">
+                        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M15 4a1 1 0 0 1 1 1v2h2a1 1 0 1 1 0 2h-2v2a1 1 0 1 1-2 0V9h-2a1 1 0 1 1 0-2h2V5a1 1 0 0 1 1-1ZM8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0 2c3.6 0 6.5 2 7.7 4.9a1 1 0 0 1-.9 1.4H1.2a1 1 0 0 1-.9-1.4C1.5 16 4.4 14 8 14Z" fill="currentColor"/>
+                        </svg>
+                        <span class="sr-only">Creer un compte</span>
+                    </a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    {% if messages %}
+        <div class="container alerts">
+            {% for message in messages %}
+                <div class="alert">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <main class="container page-enter">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-inner">
+            <p>EduTrack CMS - Publication pedagogique pour enfants</p>
+            <p>Lecture libre sans compte, publication reservee aux auteurs.</p>
+        </div>
+    </footer>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

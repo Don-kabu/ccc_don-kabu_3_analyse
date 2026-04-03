@@ -1,0 +1,15 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Supprimer article | EduTrack{% endblock %}
+
+{% block content %}
+<article class="card wide">
+    <h1>Confirmer la suppression</h1>
+    <p>Voulez-vous vraiment supprimer l'article "{{ article.title }}" ?</p>
+    <form method="post" class="row-actions">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Oui, supprimer</button>
+        <a class="btn" href="{% url 'blog:author_dashboard' %}">Annuler</a>
+    </form>
+</article>
+{% endblock %}

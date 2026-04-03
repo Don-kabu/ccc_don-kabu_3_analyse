@@ -1,0 +1,182 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}{% if mode == 'create' %}Nouvel article{% else %}Modifier article{% endif %} | EduTrack{% endblock %}
+
+{% block head %}
+<link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="list-header">
+    <h1>{% if mode == 'create' %}Publication d'un article pedagogique{% else %}Modification d'article{% endif %}</h1>
+</section>
+
+<article class="card wide">
+    <form method="post" class="form-grid">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="form-errors">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="field-group">
+            <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+            {{ form.title }}
+            {% if form.title.errors %}<div class="field-errors">{{ form.title.errors }}</div>{% endif %}
+        </div>
+
+        <div class="field-group">
+            <label for="{{ form.illustration_url.id_for_label }}">{{ form.illustration_url.label }}</label>
+            {{ form.illustration_url }}
+            {% if form.illustration_url.errors %}<div class="field-errors">{{ form.illustration_url.errors }}</div>{% endif %}
+        </div>
+
+        <div class="field-group">
+            <label for="{{ form.intro.id_for_label }}">{{ form.intro.label }}</label>
+            <div class="quill-editor" data-target="{{ form.intro.id_for_label }}"></div>
+            {{ form.intro }}
+            {% if form.intro.errors %}<div class="field-errors">{{ form.intro.errors }}</div>{% endif %}
+        </div>
+
+        <div class="field-group">
+            <label for="{{ form.objectives.id_for_label }}">{{ form.objectives.label }}</label>
+            {{ form.objectives }}
+            {% if form.objectives.help_text %}<p class="help-text">{{ form.objectives.help_text }}</p>{% endif %}
+            {% if form.objectives.errors %}<div class="field-errors">{{ form.objectives.errors }}</div>{% endif %}
+        </div>
+
+        <div class="field-group">
+            <label for="{{ form.content.id_for_label }}">{{ form.content.label }}</label>
+            <div class="quill-editor quill-editor-large" data-target="{{ form.content.id_for_label }}"></div>
+            {{ form.content }}
+            {% if form.content.help_text %}<p class="help-text">{{ form.content.help_text }}</p>{% endif %}
+            {% if form.content.errors %}<div class="field-errors">{{ form.content.errors }}</div>{% endif %}
+        </div>
+
+        <div class="field-group">
+            <label for="{{ form.conclusion.id_for_label }}">{{ form.conclusion.label }}</label>
+            <div class="quill-editor" data-target="{{ form.conclusion.id_for_label }}"></div>
+            {{ form.conclusion }}
+            {% if form.conclusion.errors %}<div class="field-errors">{{ form.conclusion.errors }}</div>{% endif %}
+        </div>
+
+        <div class="field-group">
+            <label for="{{ form.reflection_questions.id_for_label }}">{{ form.reflection_questions.label }}</label>
+            {{ form.reflection_questions }}
+            {% if form.reflection_questions.help_text %}<p class="help-text">{{ form.reflection_questions.help_text }}</p>{% endif %}
+            {% if form.reflection_questions.errors %}<div class="field-errors">{{ form.reflection_questions.errors }}</div>{% endif %}
+        </div>
+
+        <div class="field-group">
+            <label for="{{ form.resources.id_for_label }}">{{ form.resources.label }}</label>
+            {{ form.resources }}
+            {% if form.resources.help_text %}<p class="help-text">{{ form.resources.help_text }}</p>{% endif %}
+            {% if form.resources.errors %}<div class="field-errors">{{ form.resources.errors }}</div>{% endif %}
+        </div>
+
+        <div class="field-group">
+            <label for="{{ form.tags_csv.id_for_label }}">{{ form.tags_csv.label }}</label>
+            {{ form.tags_csv }}
+            {% if form.tags_csv.help_text %}<p class="help-text">{{ form.tags_csv.help_text }}</p>{% endif %}
+            {% if form.tags_csv.errors %}<div class="field-errors">{{ form.tags_csv.errors }}</div>{% endif %}
+        </div>
+
+        <div class="field-group">
+            <label for="{{ form.status.id_for_label }}">{{ form.status.label }}</label>
+            {{ form.status }}
+            {% if form.status.errors %}<div class="field-errors">{{ form.status.errors }}</div>{% endif %}
+        </div>
+
+        <div class="row-actions">
+            <button class="btn btn-primary" type="submit">Enregistrer</button>
+            <a class="btn" href="{% url 'blog:author_dashboard' %}">Retour dashboard</a>
+            <span class="meta save-state" id="saveState">Edition en cours</span>
+        </div>
+    </form>
+</article>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
+<script>
+    (function () {
+        const form = document.querySelector('.form-grid');
+        if (!form || typeof Quill === 'undefined') {
+            return;
+        }
+
+        const saveState = document.getElementById('saveState');
+        const editors = [];
+
+        function setState(label) {
+            if (saveState) {
+                saveState.textContent = label;
+            }
+        }
+
+        function normalizeHtml(html) {
+            const trimmed = (html || '').trim();
+            return trimmed === '<p><br></p>' ? '' : trimmed;
+        }
+
+        function imageUrlHandler() {
+            const value = window.prompt('Collez une URL d image (https://...)');
+            if (!value) {
+                return;
+            }
+            const url = value.trim();
+            if (!/^https?:\/\//i.test(url)) {
+                window.alert('Utilisez une URL valide commencant par http:// ou https://');
+                return;
+            }
+            const range = this.quill.getSelection(true);
+            const index = range ? range.index : this.quill.getLength();
+            this.quill.insertEmbed(index, 'image', url, 'user');
+            this.quill.setSelection(index + 1, 0, 'silent');
+        }
+
+        document.querySelectorAll('.quill-editor[data-target]').forEach(function (editorRoot) {
+            const targetId = editorRoot.getAttribute('data-target');
+            const textarea = document.getElementById(targetId);
+            if (!textarea) {
+                return;
+            }
+
+            const quill = new Quill(editorRoot, {
+                theme: 'snow',
+                modules: {
+                    toolbar: [
+                        [{ header: [2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'blockquote'],
+                        [{ list: 'ordered' }, { list: 'bullet' }],
+                        ['link', 'image'],
+                        ['clean']
+                    ],
+                    clipboard: {
+                        matchVisual: false
+                    }
+                }
+            });
+
+            quill.getModule('toolbar').addHandler('image', imageUrlHandler);
+
+            if (textarea.value) {
+                quill.clipboard.dangerouslyPasteHTML(textarea.value);
+            }
+
+            quill.on('text-change', function () {
+                textarea.value = normalizeHtml(quill.root.innerHTML);
+                setState('Non enregistre');
+            });
+
+            editors.push({ quill: quill, textarea: textarea });
+        });
+
+        form.addEventListener('submit', function () {
+            editors.forEach(function (item) {
+                item.textarea.value = normalizeHtml(item.quill.root.innerHTML);
+            });
+            setState('Enregistrement...');
+        });
+    })();
+</script>
+{% endblock %}

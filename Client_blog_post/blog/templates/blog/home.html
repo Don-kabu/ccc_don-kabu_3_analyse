@@ -1,0 +1,56 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}EduTrack | Accueil{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <p class="eyebrow">CMS pedagogique</p>
+    <h1>Publier des articles educatifs qui captivent les enfants.</h1>
+    <p>
+        Une experience inspiree de Substack pour ecrire, organiser, diffuser et analyser vos contenus pedagogiques.
+    </p>
+    <div class="hero-actions">
+        {% if user.is_authenticated %}
+            <a class="btn btn-primary" href="{% url 'blog:article_create' %}">Rediger un article</a>
+            <a class="btn" href="{% url 'blog:author_dashboard' %}">Voir mon dashboard</a>
+        {% else %}
+            <a class="btn btn-primary" href="{% url 'login' %}">Connexion auteur</a>
+            <a class="btn" href="{% url 'blog:article_list' %}">Explorer les articles</a>
+        {% endif %}
+    </div>
+</section>
+
+<section class="list-header">
+    <h1>Explorer les articles pedagogiques</h1>
+    <form method="get" action="{% url 'blog:article_list' %}" class="search-form">
+        <input type="text" name="q" value="{{ query }}" placeholder="Rechercher par theme, tag ou contenu">
+        <button class="btn btn-primary" type="submit">Rechercher</button>
+    </form>
+</section>
+
+<div class="article-list">
+    {% for article in featured_articles %}
+        <article class="article-row">
+            <a href="{% url 'blog:article_detail' article.slug %}" class="thumb-wrap" aria-label="Lire {{ article.title }}">
+                {% if article.illustration_url %}
+                    <img src="{{ article.illustration_url }}" alt="Illustration de {{ article.title }}" class="thumb">
+                {% else %}
+                    <div class="thumb thumb-fallback">EduTrack</div>
+                {% endif %}
+            </a>
+            <div class="article-content">
+                <h2><a href="{% url 'blog:article_detail' article.slug %}">{{ article.title }}</a></h2>
+                <p class="meta">Par {{ article.author }}{% if article.published_at %} • {{ article.published_at|date:'d/m/Y' }}{% endif %}</p>
+                <p>{{ article.intro|truncatechars:230 }}</p>
+                <div class="tags">
+                    {% for tag in article.tags.all %}
+                        <a href="{% url 'blog:article_list' %}?tag={{ tag.slug }}" class="tag{% if active_tag == tag.slug %} active{% endif %}">#{{ tag.name }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </article>
+    {% empty %}
+        <p>Aucun article ne correspond a votre recherche.</p>
+    {% endfor %}
+</div>
+{% endblock %}

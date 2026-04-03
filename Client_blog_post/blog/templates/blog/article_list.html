@@ -1,0 +1,39 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}EduTrack | Explorer{% endblock %}
+
+{% block content %}
+<section class="list-header">
+    <h1>Explorer les articles pedagogiques</h1>
+    <form method="get" class="search-form">
+        <input type="text" name="q" value="{{ query }}" placeholder="Rechercher par theme, tag ou contenu">
+        <button class="btn btn-primary" type="submit">Rechercher</button>
+    </form>
+</section>
+
+<div class="article-list">
+    {% for article in articles %}
+        <article class="article-row">
+            <a href="{% url 'blog:article_detail' article.slug %}" class="thumb-wrap" aria-label="Lire {{ article.title }}">
+                {% if article.illustration_url %}
+                    <img src="{{ article.illustration_url }}" alt="Illustration de {{ article.title }}" class="thumb">
+                {% else %}
+                    <div class="thumb thumb-fallback">EduTrack</div>
+                {% endif %}
+            </a>
+            <div class="article-content">
+                <h2><a href="{% url 'blog:article_detail' article.slug %}">{{ article.title }}</a></h2>
+                <p class="meta">Par {{ article.author }}{% if article.published_at %} • {{ article.published_at|date:'d/m/Y' }}{% endif %}</p>
+                <p>{{ article.intro|truncatechars:230 }}</p>
+                <div class="tags">
+                    {% for tag in article.tags.all %}
+                        <a href="{% url 'blog:article_list' %}?tag={{ tag.slug }}" class="tag{% if active_tag == tag.slug %} active{% endif %}">#{{ tag.name }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </article>
+    {% empty %}
+        <p>Aucun article ne correspond a votre recherche.</p>
+    {% endfor %}
+</div>
+{% endblock %}

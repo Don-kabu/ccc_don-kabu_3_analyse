@@ -1,0 +1,32 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Connexion – Digital Scholar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="{% static 'css/site.css' %}"/>
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <span class="auth-brand">Digital Scholar</span>
+    <h2>Connexion</h2>
+    <p>Accédez au tableau de bord analytique.</p>
+    <form method="post">
+      {% csrf_token %}
+      {% if form.errors %}
+        <p style="color:#c62828;font-size:.82rem;margin-bottom:10px;">Identifiants incorrects.</p>
+      {% endif %}
+      <label for="id_username">Nom d'utilisateur</label>
+      <input type="text" id="id_username" name="username" autocomplete="username" required />
+      <label for="id_password">Mot de passe</label>
+      <input type="password" id="id_password" name="password" autocomplete="current-password" required />
+      <button type="submit">Se connecter</button>
+    </form>
+  </div>
+</div>
+</body>
+</html>

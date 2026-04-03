@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Analyse & Tendances – Digital Scholar{% endblock %}
+
+{% block content %}
+<div class="page-label">Intelligence éditoriale</div>
+<h1 class="page-title">Analyse &amp;<br><span>Visualisation des Tendances</span></h1>
+<p class="page-subtitle">Une étude approfondie des habitudes de consommation, structurée<br>pour la clarté et l'excellence académique.</p>
+
+<!-- Period selector -->
+<div style="margin-top:24px;margin-bottom:28px">
+  <p style="font-size:.82rem;color:var(--accent);margin-bottom:10px;font-weight:600">Période d'analyse</p>
+  <p class="page-subtitle" style="margin-bottom:12px">Données consolidées pour la période sélectionnée.</p>
+  <div class="toggle-group">
+    <a href="?period=30"  class="toggle-btn {% if period == '30' %}active{% endif %}">30 jours</a>
+    <a href="?period=90"  class="toggle-btn {% if period == '90' %}active{% endif %}">90 jours</a>
+    <a href="?period=365" class="toggle-btn {% if period == '365' %}active{% endif %}">Personnalisé</a>
+  </div>
+</div>
+
+<!-- Average read time per article -->
+<h2 style="font-size:1rem;font-weight:700;margin-bottom:4px">Temps réel d'exposition par article</h2>
+<div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px">
+  <span>Titre de l'article</span><span>Moyenne</span>
+</div>
+
+{% with max_secs=max_secs|default:1 %}
+{% for m in metrics %}
+<div class="metric-row">
+  <div class="metric-header">
+    <span class="metric-title">{{ m.title }}</span>
+    <span class="metric-value">{{ m.avg_minutes }} min</span>
+  </div>
+  <div class="metric-bar-bg">
+    <div class="metric-bar-fill" style="width:{% widthratio m.total_seconds max_secs 100 %}%"></div>
+  </div>
+</div>
+{% empty %}
+<p style="color:var(--text-muted);padding:16px 0">Aucune donnée pour cette période.</p>
+{% endfor %}
+{% endwith %}
+
+<!-- Device segmentation -->
+<div class="chart-card" style="margin-top:32px">
+  <h2 style="font-size:1rem;font-weight:700;margin-bottom:4px">Segmentation par Appareil</h2>
+  <p class="page-subtitle" style="margin-bottom:16px">Répartition des accès sur les différentes plateformes</p>
+  <ul class="segment-list">
+    {% for d in device_data %}
+    <li class="segment-item">
+      <span class="seg-label">
+        <span class="segment-dot" style="background:{% if forloop.counter == 1 %}#254e70{% elif forloop.counter == 2 %}#38a3a5{% else %}#6aaa64{% endif %}"></span>
+        {{ d.label }}
+      </span>
+      <span class="seg-pct">{{ d.pct }}%</span>
+    </li>
+    {% empty %}
+    <li class="segment-item"><span style="color:var(--text-muted)">Aucune donnée</span></li>
+    {% endfor %}
+  </ul>
+</div>
+
+<!-- Impressions -->
+<div class="impressions-block">
+  <div class="impressions-number">{{ total_impressions }}</div>
+  <div class="impressions-label">Impressions totales</div>
+</div>
+
+<!-- Browser segmentation -->
+<div class="chart-card">
+  <h2 style="font-size:1rem;font-weight:700;margin-bottom:4px">Segmentation par Navigateur</h2>
+  <p class="page-subtitle" style="margin-bottom:16px">Répartition des accès par navigateur</p>
+  <ul class="segment-list">
+    {% for b in browser_data %}
+    <li class="segment-item">
+      <span class="seg-label">
+        <span class="segment-dot" style="background:{% if forloop.counter == 1 %}#254e70{% elif forloop.counter == 2 %}#38a3a5{% else %}#6aaa64{% endif %}"></span>
+        {{ b.label }}
+      </span>
+      <span class="seg-pct">{{ b.pct }}%</span>
+    </li>
+    {% empty %}
+    <li class="segment-item"><span style="color:var(--text-muted)">Aucune donnée</span></li>
+    {% endfor %}
+  </ul>
+</div>
+
+<!-- Retention -->
+<div class="chart-card" style="margin-bottom:40px">
+  <h2 style="font-size:1rem;font-weight:700;margin-bottom:4px">Rétention de lecteurs par page</h2>
+  <div class="retention-bar-wrap">
+    <div class="retention-indicator" style="left:calc({{ retention_pct }}% - 10px)"></div>
+  </div>
+  <div class="retention-labels">
+    <span>Lecture partielle</span>
+    <span>Lecture complète</span>
+  </div>
+</div>
+{% endblock %}

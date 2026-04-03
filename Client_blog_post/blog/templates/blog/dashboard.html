@@ -1,0 +1,54 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Dashboard Auteur | EduTrack{% endblock %}
+
+{% block content %}
+<section class="list-header">
+    <h1>Dashboard auteur</h1>
+    <a class="btn btn-primary" href="{% url 'blog:article_create' %}">Nouvel article</a>
+</section>
+
+<section class="stats">
+    <article class="stat-card">
+        <p>Lectures totales</p>
+        <h3>{{ total_reads }}</h3>
+    </article>
+    <article class="stat-card">
+        <p>Temps moyen par lecture</p>
+        <h3>{{ avg_time }} sec</h3>
+    </article>
+    <article class="stat-card">
+        <p>Section la plus populaire</p>
+        <h3>{{ top_section }}</h3>
+    </article>
+</section>
+
+<section class="stack">
+    <h2>Mes articles</h2>
+    {% for card in article_cards %}
+        {% with article=card.article analytics=card.analytics %}
+        <article class="card wide">
+            <h3>{{ article.title }}</h3>
+            <p class="meta">Statut: {{ article.get_status_display }} • Derniere mise a jour: {{ article.updated_at|date:'d/m/Y H:i' }}</p>
+            <div class="row-actions">
+                {% if article.status == 'published' %}
+                    <a class="btn" href="{% url 'blog:article_detail' article.slug %}">Voir</a>
+                {% endif %}
+                <a class="btn" href="{% url 'blog:article_edit' article.slug %}">Modifier</a>
+                <a class="btn btn-danger" href="{% url 'blog:article_delete' article.slug %}">Supprimer</a>
+            </div>
+            {% if analytics %}
+                <p class="meta">Lectures: {{ analytics.total_reads }} • Temps total: {{ analytics.total_seconds_read }} sec</p>
+            {% endif %}
+        </article>
+        {% endwith %}
+    {% empty %}
+        <p>Vous n'avez pas encore d'article.</p>
+    {% endfor %}
+</section>
+
+<section class="card wide">
+    <h3>Endpoint analytics externe configure</h3>
+    <p>{{ analytics_endpoint }}</p>
+</section>
+{% endblock %}
