@@ -1,147 +1,199 @@
 {% extends 'blog/base.html' %}
+{% load static %}
 
 {% block title %}{% if mode == 'create' %}Nouvel article{% else %}Modifier article{% endif %} | EduTrack{% endblock %}
 
 {% block head %}
-<link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/article_form.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<section class="list-header">
-    <h1>{% if mode == 'create' %}Publication d'un article pedagogique{% else %}Modification d'article{% endif %}</h1>
-</section>
-
-<article class="card wide">
-    <form method="post" class="form-grid">
+<div class="editor-container">
+    <form method="post" enctype="multipart/form-data" class="editor-form" id="editorForm">
         {% csrf_token %}
         {% if form.non_field_errors %}
             <div class="form-errors">{{ form.non_field_errors }}</div>
         {% endif %}
 
-        <div class="field-group">
-            <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+        {# ── Barre d'outils supérieure ───────────────────────────── #}
+        <div class="editor-topbar">
+            <a class="editor-back" href="{% url 'blog:author_dashboard' %}" title="Retour">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+            </a>
+            <div class="editor-topbar-right">
+                <span class="editor-save-state meta" id="saveState">{% if mode == 'edit' %}Brouillon{% else %}Nouveau{% endif %}</span>
+                {{ form.status }}
+                <button class="btn btn-publish" type="submit">
+                    {% if mode == 'create' %}Publier{% else %}Enregistrer{% endif %}
+                </button>
+            </div>
+        </div>
+
+        {# ── Zone titre ──────────────────────────────────────────── #}
+        <div class="editor-title-zone">
             {{ form.title }}
             {% if form.title.errors %}<div class="field-errors">{{ form.title.errors }}</div>{% endif %}
         </div>
 
-        <div class="field-group">
-            <label for="{{ form.illustration_url.id_for_label }}">{{ form.illustration_url.label }}</label>
-            {{ form.illustration_url }}
-            {% if form.illustration_url.errors %}<div class="field-errors">{{ form.illustration_url.errors }}</div>{% endif %}
-        </div>
-
-        <div class="field-group">
-            <label for="{{ form.intro.id_for_label }}">{{ form.intro.label }}</label>
-            <div class="quill-editor" data-target="{{ form.intro.id_for_label }}"></div>
+        {# ── Sous-titre / Intro (rich text) ──────────────────────── #}
+        <div class="editor-section">
+            <label class="editor-label">Introduction</label>
+            <div class="quill-editor quill-editor-intro" data-target="{{ form.intro.id_for_label }}"></div>
             {{ form.intro }}
             {% if form.intro.errors %}<div class="field-errors">{{ form.intro.errors }}</div>{% endif %}
         </div>
 
-        <div class="field-group">
-            <label for="{{ form.objectives.id_for_label }}">{{ form.objectives.label }}</label>
-            {{ form.objectives }}
-            {% if form.objectives.help_text %}<p class="help-text">{{ form.objectives.help_text }}</p>{% endif %}
-            {% if form.objectives.errors %}<div class="field-errors">{{ form.objectives.errors }}</div>{% endif %}
+        {# ── Image de couverture ─────────────────────────────────── #}
+        <div class="editor-section editor-media-section">
+            <label class="editor-label">Image de couverture</label>
+            <div class="media-tabs" role="tablist">
+                <button type="button" class="media-tab active" data-show="illu-url" data-hide="illu-upload" aria-selected="true">URL</button>
+                <button type="button" class="media-tab" data-show="illu-upload" data-hide="illu-url" aria-selected="false">Upload</button>
+            </div>
+            <div id="illu-url" class="media-panel">
+                {{ form.illustration_url }}
+                {% if mode == 'edit' and article.illustration_url %}
+                    <p class="help-text">Actuelle : <a href="{{ article.illustration_url }}" target="_blank" rel="noopener">{{ article.illustration_url|truncatechars:50 }}</a></p>
+                {% endif %}
+            </div>
+            <div id="illu-upload" class="media-panel hidden">
+                {{ form.illustration_upload }}
+                {% if mode == 'edit' and article.illustration_upload %}
+                    <p class="help-text">Fichier : {{ article.illustration_upload.name }}</p>
+                {% endif %}
+            </div>
         </div>
 
-        <div class="field-group">
-            <label for="{{ form.content.id_for_label }}">{{ form.content.label }}</label>
+        {# ── Contenu principal (rich text) ────────────────────────── #}
+        <div class="editor-section">
+            <label class="editor-label">Contenu</label>
             <div class="quill-editor quill-editor-large" data-target="{{ form.content.id_for_label }}"></div>
             {{ form.content }}
-            {% if form.content.help_text %}<p class="help-text">{{ form.content.help_text }}</p>{% endif %}
             {% if form.content.errors %}<div class="field-errors">{{ form.content.errors }}</div>{% endif %}
         </div>
 
-        <div class="field-group">
-            <label for="{{ form.conclusion.id_for_label }}">{{ form.conclusion.label }}</label>
-            <div class="quill-editor" data-target="{{ form.conclusion.id_for_label }}"></div>
-            {{ form.conclusion }}
-            {% if form.conclusion.errors %}<div class="field-errors">{{ form.conclusion.errors }}</div>{% endif %}
-        </div>
+        {# ── Panneau latéral dépliable (métadonnées) ──────────────── #}
+        <details class="editor-details" open>
+            <summary class="editor-details-summary">Détails de l'article</summary>
+            <div class="editor-details-body">
 
-        <div class="field-group">
-            <label for="{{ form.reflection_questions.id_for_label }}">{{ form.reflection_questions.label }}</label>
-            {{ form.reflection_questions }}
-            {% if form.reflection_questions.help_text %}<p class="help-text">{{ form.reflection_questions.help_text }}</p>{% endif %}
-            {% if form.reflection_questions.errors %}<div class="field-errors">{{ form.reflection_questions.errors }}</div>{% endif %}
-        </div>
+                <div class="editor-field">
+                    <label for="{{ form.category.id_for_label }}">Catégorie</label>
+                    {{ form.category }}
+                </div>
 
-        <div class="field-group">
-            <label for="{{ form.resources.id_for_label }}">{{ form.resources.label }}</label>
-            {{ form.resources }}
-            {% if form.resources.help_text %}<p class="help-text">{{ form.resources.help_text }}</p>{% endif %}
-            {% if form.resources.errors %}<div class="field-errors">{{ form.resources.errors }}</div>{% endif %}
-        </div>
+                <div class="editor-field">
+                    <label for="{{ form.objectives.id_for_label }}">Objectifs d'apprentissage</label>
+                    {{ form.objectives }}
+                    <p class="help-text">Une ligne par objectif.</p>
+                </div>
 
-        <div class="field-group">
-            <label for="{{ form.tags_csv.id_for_label }}">{{ form.tags_csv.label }}</label>
-            {{ form.tags_csv }}
-            {% if form.tags_csv.help_text %}<p class="help-text">{{ form.tags_csv.help_text }}</p>{% endif %}
-            {% if form.tags_csv.errors %}<div class="field-errors">{{ form.tags_csv.errors }}</div>{% endif %}
-        </div>
+                <div class="editor-field">
+                    <label class="editor-label">Conclusion</label>
+                    <div class="quill-editor quill-editor-sm" data-target="{{ form.conclusion.id_for_label }}"></div>
+                    {{ form.conclusion }}
+                </div>
 
-        <div class="field-group">
-            <label for="{{ form.status.id_for_label }}">{{ form.status.label }}</label>
-            {{ form.status }}
-            {% if form.status.errors %}<div class="field-errors">{{ form.status.errors }}</div>{% endif %}
-        </div>
+                <div class="editor-field">
+                    <label for="{{ form.reflection_questions.id_for_label }}">Questions de réflexion</label>
+                    {{ form.reflection_questions }}
+                    <p class="help-text">Une ligne par question.</p>
+                </div>
 
-        <div class="row-actions">
-            <button class="btn btn-primary" type="submit">Enregistrer</button>
-            <a class="btn" href="{% url 'blog:author_dashboard' %}">Retour dashboard</a>
-            <span class="meta save-state" id="saveState">Edition en cours</span>
-        </div>
+                <div class="editor-field">
+                    <label for="{{ form.resources.id_for_label }}">Ressources</label>
+                    {{ form.resources }}
+                    <p class="help-text">Une ligne par ressource.</p>
+                </div>
+
+                <div class="editor-field">
+                    <label for="{{ form.tags_csv.id_for_label }}">Tags</label>
+                    {{ form.tags_csv }}
+                    <p class="help-text">Séparez les tags avec des virgules.</p>
+                </div>
+
+                {# ── Toggle analytics ──────────────────────────────── #}
+                <div class="editor-field analyser-toggle-group">
+                    <div class="analyser-toggle-row">
+                        <div class="analyser-toggle-info">
+                            <span class="analyser-toggle-label">Suivi analytique</span>
+                            <span class="analyser-toggle-desc">Envoyer les logs vers le serveur d'analyse</span>
+                        </div>
+                        <label class="toggle-switch" for="id_enable_analytics">
+                            {{ form.enable_analytics }}
+                            <span class="toggle-track">
+                                <span class="toggle-thumb"></span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </details>
+
     </form>
-</article>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
 <script>
     (function () {
-        const form = document.querySelector('.form-grid');
-        if (!form || typeof Quill === 'undefined') {
-            return;
-        }
+        /* ── Media tabs (URL / Upload toggle) ── */
+        document.querySelectorAll('.editor-media-section').forEach(function (group) {
+            var tabs = group.querySelectorAll('.media-tab');
+            tabs.forEach(function (tab) {
+                tab.addEventListener('click', function () {
+                    tabs.forEach(function (t) {
+                        t.classList.remove('active');
+                        t.setAttribute('aria-selected', 'false');
+                    });
+                    tab.classList.add('active');
+                    tab.setAttribute('aria-selected', 'true');
+                    var showEl = document.getElementById(tab.getAttribute('data-show'));
+                    var hideEl = document.getElementById(tab.getAttribute('data-hide'));
+                    if (showEl) showEl.classList.remove('hidden');
+                    if (hideEl) hideEl.classList.add('hidden');
+                });
+            });
+        });
 
-        const saveState = document.getElementById('saveState');
-        const editors = [];
+        /* ── Quill rich-text editors ── */
+        var form = document.getElementById('editorForm');
+        if (!form || typeof Quill === 'undefined') return;
+
+        var saveState = document.getElementById('saveState');
+        var editors = [];
 
         function setState(label) {
-            if (saveState) {
-                saveState.textContent = label;
-            }
+            if (saveState) saveState.textContent = label;
         }
 
         function normalizeHtml(html) {
-            const trimmed = (html || '').trim();
+            var trimmed = (html || '').trim();
             return trimmed === '<p><br></p>' ? '' : trimmed;
         }
 
         function imageUrlHandler() {
-            const value = window.prompt('Collez une URL d image (https://...)');
-            if (!value) {
-                return;
-            }
-            const url = value.trim();
+            var value = window.prompt('Collez une URL d\'image (https://...)');
+            if (!value) return;
+            var url = value.trim();
             if (!/^https?:\/\//i.test(url)) {
-                window.alert('Utilisez une URL valide commencant par http:// ou https://');
+                window.alert('URL invalide');
                 return;
             }
-            const range = this.quill.getSelection(true);
-            const index = range ? range.index : this.quill.getLength();
+            var range = this.quill.getSelection(true);
+            var index = range ? range.index : this.quill.getLength();
             this.quill.insertEmbed(index, 'image', url, 'user');
             this.quill.setSelection(index + 1, 0, 'silent');
         }
 
         document.querySelectorAll('.quill-editor[data-target]').forEach(function (editorRoot) {
-            const targetId = editorRoot.getAttribute('data-target');
-            const textarea = document.getElementById(targetId);
-            if (!textarea) {
-                return;
-            }
+            var targetId = editorRoot.getAttribute('data-target');
+            var textarea = document.getElementById(targetId);
+            if (!textarea) return;
 
-            const quill = new Quill(editorRoot, {
+            var quill = new Quill(editorRoot, {
                 theme: 'snow',
                 modules: {
                     toolbar: [
@@ -151,10 +203,9 @@
                         ['link', 'image'],
                         ['clean']
                     ],
-                    clipboard: {
-                        matchVisual: false
-                    }
-                }
+                    clipboard: { matchVisual: false }
+                },
+                placeholder: 'Commencez à écrire...'
             });
 
             quill.getModule('toolbar').addHandler('image', imageUrlHandler);
@@ -165,7 +216,7 @@
 
             quill.on('text-change', function () {
                 textarea.value = normalizeHtml(quill.root.innerHTML);
-                setState('Non enregistre');
+                setState('Non enregistré');
             });
 
             editors.push({ quill: quill, textarea: textarea });

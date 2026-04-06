@@ -1,56 +1,109 @@
 {% extends 'blog/base.html' %}
+{% load static %}
 
 {% block title %}EduTrack | Accueil{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
+
 {% block content %}
 <section class="hero">
-    <p class="eyebrow">CMS pedagogique</p>
-    <h1>Publier des articles educatifs qui captivent les enfants.</h1>
-    <p>
-        Une experience inspiree de Substack pour ecrire, organiser, diffuser et analyser vos contenus pedagogiques.
-    </p>
+    <p class="eyebrow">CMS pédagogique</p>
+    <h1>Publier des articles éducatifs qui captivent les enfants.</h1>
+    <p>Une expérience inspirée de Substack pour écrire, organiser, diffuser et analyser vos contenus pédagogiques.</p>
     <div class="hero-actions">
-        {% if user.is_authenticated %}
-            <a class="btn btn-primary" href="{% url 'blog:article_create' %}">Rediger un article</a>
-            <a class="btn" href="{% url 'blog:author_dashboard' %}">Voir mon dashboard</a>
-        {% else %}
-            <a class="btn btn-primary" href="{% url 'login' %}">Connexion auteur</a>
-            <a class="btn" href="{% url 'blog:article_list' %}">Explorer les articles</a>
-        {% endif %}
+        <a class="btn btn-primary" href="{% url 'blog:article_list' %}">Explorer les articles</a>
     </div>
 </section>
 
-<section class="list-header">
-    <h1>Explorer les articles pedagogiques</h1>
-    <form method="get" action="{% url 'blog:article_list' %}" class="search-form">
-        <input type="text" name="q" value="{{ query }}" placeholder="Rechercher par theme, tag ou contenu">
-        <button class="btn btn-primary" type="submit">Rechercher</button>
+<section class="home-search">
+    <form method="get" action="{% url 'blog:article_list' %}" class="search-bar">
+        <svg class="search-bar-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" name="q" placeholder="Rechercher un article..." autocomplete="off">
+        <button class="search-bar-btn" type="submit">Rechercher</button>
     </form>
 </section>
 
-<div class="article-list">
-    {% for article in featured_articles %}
-        <article class="article-row">
-            <a href="{% url 'blog:article_detail' article.slug %}" class="thumb-wrap" aria-label="Lire {{ article.title }}">
+
+{# ── Article vedette (le plus récent) ────────────────────────────────── #}
+{% if featured_articles %}
+{% with hero_article=featured_articles.0 %}
+<section class="featured-hero">
+    <a href="{% url 'blog:article_detail' hero_article.slug %}" class="featured-hero-img-wrap">
+        {% if hero_article.illustration_url %}
+            <img src="{{ hero_article.illustration_url }}" alt="{{ hero_article.title }}" class="featured-hero-img">
+        {% elif hero_article.illustration_upload %}
+            <img src="{{ hero_article.illustration_upload.url }}" alt="{{ hero_article.title }}" class="featured-hero-img">
+        {% else %}
+            <div class="featured-hero-img featured-hero-fallback">EduTrack</div>
+        {% endif %}
+    </a>
+    <div class="featured-hero-body">
+        {% if hero_article.category %}
+            <span class="category-badge">{{ hero_article.get_category_display }}</span>
+        {% endif %}
+        <h2><a href="{% url 'blog:article_detail' hero_article.slug %}">{{ hero_article.title }}</a></h2>
+        <p class="meta">Par {{ hero_article.author }} • {{ hero_article.created_at|date:'d/m/Y' }}</p>
+        <p class="featured-intro">{{ hero_article.intro|striptags|truncatechars:300 }}</p>
+        <div class="article-stats-bar">
+            <span class="stat-pill" title="Vues">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                {{ hero_article.view_count }}
+            </span>
+            <a href="{% url 'blog:article_detail' hero_article.slug %}#section-comments" class="stat-pill stat-pill-link" title="Commentaires">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                {{ hero_article.comment_count }}
+            </a>
+        </div>
+    </div>
+</section>
+{% endwith %}
+
+{# ── Grille des articles récents ─────────────────────────────────────── #}
+{% if featured_articles|length > 1 %}
+<section class="recent-section">
+    <h2 class="section-title">Articles récents</h2>
+    <div class="articles-grid">
+        {% for article in featured_articles %}
+        {% if not forloop.first %}
+        <article class="article-card">
+            <a href="{% url 'blog:article_detail' article.slug %}" class="card-img-wrap">
                 {% if article.illustration_url %}
-                    <img src="{{ article.illustration_url }}" alt="Illustration de {{ article.title }}" class="thumb">
+                    <img src="{{ article.illustration_url }}" alt="{{ article.title }}" class="card-img">
+                {% elif article.illustration_upload %}
+                    <img src="{{ article.illustration_upload.url }}" alt="{{ article.title }}" class="card-img">
                 {% else %}
-                    <div class="thumb thumb-fallback">EduTrack</div>
+                    <div class="card-img card-img-fallback">EduTrack</div>
                 {% endif %}
             </a>
-            <div class="article-content">
-                <h2><a href="{% url 'blog:article_detail' article.slug %}">{{ article.title }}</a></h2>
-                <p class="meta">Par {{ article.author }}{% if article.published_at %} • {{ article.published_at|date:'d/m/Y' }}{% endif %}</p>
-                <p>{{ article.intro|truncatechars:230 }}</p>
-                <div class="tags">
-                    {% for tag in article.tags.all %}
-                        <a href="{% url 'blog:article_list' %}?tag={{ tag.slug }}" class="tag{% if active_tag == tag.slug %} active{% endif %}">#{{ tag.name }}</a>
-                    {% endfor %}
+            <div class="card-body">
+                {% if article.category %}
+                    <span class="category-badge category-badge-sm">{{ article.get_category_display }}</span>
+                {% endif %}
+                <h3><a href="{% url 'blog:article_detail' article.slug %}">{{ article.title }}</a></h3>
+                <p class="meta">{{ article.author }} • {{ article.created_at|date:'d/m/Y' }}</p>
+                <p class="card-intro">{{ article.intro|striptags|truncatechars:120 }}</p>
+                <div class="article-stats-bar">
+                    <span class="stat-pill" title="Vues">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        {{ article.view_count }}
+                    </span>
+                    <a href="{% url 'blog:article_detail' article.slug %}#section-comments" class="stat-pill stat-pill-link" title="Commenter">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                        {{ article.comment_count }}
+                    </a>
                 </div>
             </div>
         </article>
-    {% empty %}
-        <p>Aucun article ne correspond a votre recherche.</p>
-    {% endfor %}
+        {% endif %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% endif %}
+
+<div class="home-cta">
+    <a class="btn btn-outline" href="{% url 'blog:article_list' %}">Voir tous les articles &rarr;</a>
 </div>
 {% endblock %}

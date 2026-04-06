@@ -1,0 +1,55 @@
+<article class="comment{% if comment.parent_id %} comment-reply{% endif %}" id="comment-{{ comment.id }}">
+    <div class="comment-header">
+        <span class="comment-avatar{% if comment.parent_id %} comment-avatar--sm{% endif %}"
+              data-name="{{ comment.name }}">{{ comment.name|first|upper }}</span>
+        <div class="comment-meta">
+            <strong class="comment-author">{{ comment.name }}</strong>
+            <time class="meta" datetime="{{ comment.created_at|date:'Y-m-d' }}">
+                {{ comment.created_at|date:'d/m/Y à H:i' }}
+            </time>
+        </div>
+        <button class="btn-reply" data-comment-id="{{ comment.id }}" type="button">Répondre</button>
+    </div>
+
+    <div class="comment-body">
+        <p>{{ comment.message|linebreaksbr }}</p>
+    </div>
+
+    {# ── Formulaire de réponse inline (masqué) ────────── #}
+    <div class="reply-form-wrap" id="reply-form-{{ comment.id }}" hidden>
+        <form method="post" class="comment-form reply-form">
+            {% csrf_token %}
+            <input type="hidden" name="parent_id" value="{{ comment.id }}">
+            <p class="reply-to-label">Réponse à <strong>{{ comment.name }}</strong></p>
+            <div class="comment-form-row">
+                <div class="field-group">
+                    <label>Prénom <span class="required">*</span></label>
+                    <input type="text" name="name" class="input" placeholder="Ton prénom" maxlength="120" required>
+                </div>
+                <div class="field-group">
+                    <label>Email <span class="optional">(optionnel)</span></label>
+                    <input type="email" name="email" class="input" placeholder="exemple@mail.com">
+                </div>
+            </div>
+            <div class="field-group">
+                <label>Message <span class="required">*</span></label>
+                <textarea name="message" class="input reply-message" rows="3" maxlength="1000"
+                          placeholder="Votre réponse…" required></textarea>
+                <div class="char-counter"><span class="reply-char-count">0</span>&nbsp;/&nbsp;1000</div>
+            </div>
+            <div style="display:flex;gap:.5rem;align-items:center;">
+                <button type="submit" class="btn btn-primary">Envoyer la réponse</button>
+                <button type="button" class="btn cancel-reply">Annuler</button>
+            </div>
+        </form>
+    </div>
+
+    {# ── Enfants récursifs (profondeur infinie) ───────── #}
+    {% if comment.children %}
+    <div class="replies-list">
+        {% for child in comment.children %}
+            {% include 'blog/comment_node.html' with comment=child %}
+        {% endfor %}
+    </div>
+    {% endif %}
+</article>

@@ -1,0 +1,420 @@
+/* ═══════════════════════════════════════════════════
+   article_form.css  —  Substack-style editor
+   ═══════════════════════════════════════════════════ */
+
+/* ── Container ─────────────────────────────────────── */
+.editor-container {
+  max-width: 740px;
+  margin: 0 auto;
+  padding: 0 1.25rem 4rem;
+}
+
+.editor-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Top bar ───────────────────────────────────────── */
+.editor-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  background: var(--bg, #fff);
+  z-index: 20;
+}
+
+.editor-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: var(--fg, #222);
+  transition: background 0.15s;
+}
+
+.editor-back:hover {
+  background: var(--line, #eee);
+}
+
+.editor-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.editor-save-state {
+  font-size: 0.82rem;
+  color: var(--muted, #999);
+}
+
+.editor-topbar-right select {
+  font-size: 0.85rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+
+.btn-publish {
+  background: var(--accent, #ff6719);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.5rem 1.4rem;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btn-publish:hover {
+  opacity: 0.88;
+}
+
+/* ── Title zone ────────────────────────────────────── */
+.editor-title-zone {
+  margin-bottom: 1.5rem;
+}
+
+.editor-title-zone input,
+.editor-title-zone textarea {
+  width: 100%;
+  border: 0;
+  outline: none;
+  font-family: inherit;
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  padding: 0;
+  background: transparent;
+  color: var(--fg, #1a1a1a);
+}
+
+.editor-title-zone input::placeholder,
+.editor-title-zone textarea::placeholder {
+  color: var(--muted, #bbb);
+}
+
+/* ── Sections ──────────────────────────────────────── */
+.editor-section {
+  margin-bottom: 2rem;
+}
+
+.editor-label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--muted, #666);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Quill editors ─────────────────────────────────── */
+.wysiwyg-source,
+.editor-section textarea[name],
+.editor-field textarea.vTextField,
+.editor-form > .editor-section textarea {
+  display: none;
+}
+
+/* make all hidden textareas for quill fields invisible */
+.editor-section textarea,
+.editor-field textarea[id^="id_intro"],
+.editor-field textarea[id^="id_content"],
+.editor-field textarea[id^="id_conclusion"] {
+  display: none;
+}
+
+.quill-editor {
+  background: #fff;
+  border: 1px solid var(--line, #e5e5e5);
+  border-radius: 10px;
+  transition: border-color 0.15s;
+}
+
+.quill-editor:focus-within {
+  border-color: var(--accent, #ff6719);
+}
+
+.quill-editor .ql-toolbar.ql-snow {
+  border: 0;
+  border-bottom: 1px solid var(--line, #e5e5e5);
+  border-radius: 10px 10px 0 0;
+  background: #fafafa;
+}
+
+.quill-editor .ql-container.ql-snow {
+  border: 0;
+  min-height: 120px;
+  border-radius: 0 0 10px 10px;
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.quill-editor-large .ql-container.ql-snow {
+  min-height: 340px;
+}
+
+.quill-editor-sm .ql-container.ql-snow {
+  min-height: 90px;
+}
+
+.quill-editor-intro .ql-container.ql-snow {
+  min-height: 100px;
+  font-size: 1.1rem;
+  color: #444;
+}
+
+/* ── Media section (illustration) ──────────────────── */
+.editor-media-section {
+  border: 1px dashed var(--line, #ddd);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  background: #fafaf8;
+}
+
+.media-tabs {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.6rem;
+}
+
+.media-tab {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.28rem 0.8rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.media-tab.active,
+.media-tab:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.media-panel {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.media-panel.hidden {
+  display: none;
+}
+
+/* ── Details / metadata panel ──────────────────────── */
+.editor-details {
+  margin-top: 1rem;
+  border: 1px solid var(--line, #e5e5e5);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.editor-details-summary {
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.85rem 1.25rem;
+  cursor: pointer;
+  background: #fafaf8;
+  border-bottom: 1px solid var(--line, #e5e5e5);
+  user-select: none;
+  list-style: none;
+}
+
+.editor-details-summary::marker,
+.editor-details-summary::-webkit-details-marker {
+  display: none;
+}
+
+.editor-details-summary::before {
+  content: '▸ ';
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.editor-details[open] > .editor-details-summary::before {
+  content: '▾ ';
+}
+
+.editor-details-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  padding: 1.25rem;
+}
+
+.editor-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.editor-field label {
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--fg, #333);
+}
+
+.editor-field select,
+.editor-field input[type="text"],
+.editor-field input[type="url"],
+.editor-field textarea {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.95rem;
+  border: 1px solid var(--line, #e0e0e0);
+  border-radius: 8px;
+  background: #fff;
+  transition: border-color 0.15s;
+}
+
+.editor-field textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.editor-field select:focus,
+.editor-field input:focus,
+.editor-field textarea:focus {
+  border-color: var(--accent, #ff6719);
+  outline: none;
+}
+
+.help-text {
+  margin: 0;
+  color: var(--muted, #999);
+  font-size: 0.82rem;
+}
+
+/* ── Errors ────────────────────────────────────────── */
+.form-errors,
+.field-errors {
+  color: var(--danger, #e53e3e);
+  font-size: 0.88rem;
+}
+
+.field-errors ul,
+.form-errors ul {
+  margin: 0;
+  padding-left: 1rem;
+}
+
+/* ── Toggle analytics ──────────────────────────────── */
+.analyser-toggle-group {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  background: #f9f7ff;
+}
+
+.analyser-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.analyser-toggle-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.analyser-toggle-label {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.analyser-toggle-desc {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.toggle-switch {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 0.5rem;
+  user-select: none;
+}
+
+.toggle-switch input[type="checkbox"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.toggle-track {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  background: #d0ccc7;
+  border-radius: 999px;
+  transition: background 0.22s;
+  flex-shrink: 0;
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  transition: transform 0.22s;
+}
+
+input[type="checkbox"]:checked ~ .toggle-track {
+  background: var(--accent, #ff6719);
+}
+
+input[type="checkbox"]:checked ~ .toggle-track .toggle-thumb {
+  transform: translateX(20px);
+}
+
+input[type="checkbox"]:focus-visible ~ .toggle-track {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── Responsive ────────────────────────────────────── */
+@media (max-width: 600px) {
+  .editor-container {
+    padding: 0 0.75rem 3rem;
+  }
+
+  .editor-title-zone input,
+  .editor-title-zone textarea {
+    font-size: 1.6rem;
+  }
+
+  .editor-topbar-right {
+    gap: 0.4rem;
+  }
+
+  .btn-publish {
+    padding: 0.4rem 1rem;
+    font-size: 0.82rem;
+  }
+}

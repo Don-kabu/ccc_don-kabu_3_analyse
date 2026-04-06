@@ -75,15 +75,23 @@ class AuthorSignupForm(UserCreationForm):
 class ArticleForm(forms.ModelForm):
     tags_csv = forms.CharField(
         required=False,
-        help_text='Separez les tags avec des virgules (ex: maths, lecture, sciences).',
+        help_text='Séparez les tags avec des virgules (ex: maths, lecture, sciences).',
         label='Tags',
+    )
+    illustration_upload = forms.FileField(
+        required=False,
+        label='Image (upload)',
+        widget=forms.ClearableFileInput(attrs={'accept': 'image/*', 'class': 'input'}),
     )
 
     class Meta:
         model = Article
         fields = [
             'title',
+            'category',
             'illustration_url',
+            'illustration_upload',
+            'enable_analytics',
             'intro',
             'objectives',
             'content',
@@ -92,17 +100,33 @@ class ArticleForm(forms.ModelForm):
             'resources',
             'status',
         ]
+        widgets = {
+            'category': forms.Select(attrs={'class': 'input'}),
+            'illustration_url': forms.URLInput(attrs={'class': 'input', 'placeholder': 'https://...'}),
+            'enable_analytics': forms.CheckboxInput(attrs={'class': 'toggle-checkbox', 'id': 'id_enable_analytics'}),
+            'title': forms.TextInput(attrs={'class': 'input', 'placeholder': 'Titre de l\'article'}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Only title is required
+        for name in self.fields:
+            if name != 'title':
+                self.fields[name].required = False
+
         if self.instance and self.instance.pk:
             self.fields['tags_csv'].initial = ', '.join(self.instance.tags.values_list('name', flat=True))
+            if self.instance.illustration_upload:
+                self.fields['illustration_upload'].initial = self.instance.illustration_upload
 
         rich_fields = {'intro', 'content', 'conclusion'}
+        skip_class = {'illustration_upload', 'enable_analytics'}
         for name, field in self.fields.items():
+            if name in skip_class:
+                continue
             if name in rich_fields:
                 field.widget.attrs.update({'class': 'input wysiwyg-source', 'data-rich': '1'})
-            else:
+            elif name not in ('illustration_url',):
                 field.widget.attrs.update({'class': 'input'})
 
     def clean_intro(self):
@@ -115,7 +139,12 @@ class ArticleForm(forms.ModelForm):
         return sanitize_rich_html(self.cleaned_data.get('conclusion', ''))
 
     def save(self, commit=True):
-        article = super().save(commit=commit)
+        article = super().save(commit=False)
+        illu_file = self.cleaned_data.get('illustration_upload')
+        if illu_file:
+            article.illustration_upload = illu_file
+        if commit:
+            article.save()
         raw_tags = self.cleaned_data.get('tags_csv', '')
         tag_names = [name.strip() for name in raw_tags.split(',') if name.strip()]
         tags = [Tag.objects.get_or_create(name=name)[0] for name in tag_names]
@@ -127,9 +156,17 @@ class ArticleForm(forms.ModelForm):
 class ReaderCommentForm(forms.ModelForm):
     class Meta:
         model = ReaderComment
-        fields = ['name', 'message']
+        fields = ['name', 'email', 'message']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['name'].widget.attrs.update({'placeholder': 'Ton prenom', 'class': 'input'})
-        self.fields['message'].widget.attrs.update({'placeholder': 'Pose ta question ou partage ton idee', 'class': 'input', 'rows': 4})
+        self.fields['name'].widget.attrs.update({'placeholder': 'Ton prénom', 'class': 'input', 'maxlength': '120'})
+        self.fields['email'].required = False
+        self.fields['email'].widget.attrs.update({'placeholder': 'exemple@mail.com (optionnel)', 'class': 'input'})
+        self.fields['message'].widget.attrs.update({
+            'placeholder': 'Pose ta question ou partage ton idée…',
+            'class': 'input',
+            'rows': 4,
+            'maxlength': '1000',
+            'id': 'id_comment_message',
+        })

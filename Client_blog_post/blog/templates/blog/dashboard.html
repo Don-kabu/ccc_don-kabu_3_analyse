@@ -1,13 +1,18 @@
 {% extends 'blog/base.html' %}
+{% load static %}
 
 {% block title %}Dashboard Auteur | EduTrack{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
 
 {% block content %}
 <section class="list-header">
     <h1>Dashboard auteur</h1>
-    <a class="btn btn-primary" href="{% url 'blog:article_create' %}">Nouvel article</a>
 </section>
 
+{# ──────────────────────────────── Statistiques ─────────────────────────────────────────── #}
 <section class="stats">
     <article class="stat-card">
         <p>Lectures totales</p>
@@ -18,37 +23,517 @@
         <h3>{{ avg_time }} sec</h3>
     </article>
     <article class="stat-card">
-        <p>Section la plus populaire</p>
-        <h3>{{ top_section }}</h3>
+        <p>Nombre d'articles</p>
+        <h3>{{ total_articles }}</h3>
+    </article>
+    <article class="stat-card">
+        <p>Commentaires totaux</p>
+        <h3>{{ total_comments_count }}</h3>
     </article>
 </section>
 
-<section class="stack">
-    <h2>Mes articles</h2>
-    {% for card in article_cards %}
-        {% with article=card.article analytics=card.analytics %}
-        <article class="card wide">
-            <h3>{{ article.title }}</h3>
-            <p class="meta">Statut: {{ article.get_status_display }} • Derniere mise a jour: {{ article.updated_at|date:'d/m/Y H:i' }}</p>
-            <div class="row-actions">
-                {% if article.status == 'published' %}
-                    <a class="btn" href="{% url 'blog:article_detail' article.slug %}">Voir</a>
-                {% endif %}
-                <a class="btn" href="{% url 'blog:article_edit' article.slug %}">Modifier</a>
-                <a class="btn btn-danger" href="{% url 'blog:article_delete' article.slug %}">Supprimer</a>
+{# ──────────────────────────────── Graphiques côte à côte ────────────────────────────────────── #}
+<div class="dashboard-charts-row">
+
+    {# Doughnut analysés vs non analysés #}
+    <section class="card dashboard-chart-section">
+        <h2>Suivi analytique</h2>
+        <div class="dashboard-chart-layout">
+            <div class="dashboard-chart-wrap">
+                <canvas id="analyserPieChart" width="200" height="200"
+                        aria-label="Diagramme articles analysés vs non analysés" role="img"></canvas>
             </div>
-            {% if analytics %}
-                <p class="meta">Lectures: {{ analytics.total_reads }} • Temps total: {{ analytics.total_seconds_read }} sec</p>
+            <div class="dashboard-chart-legend">
+                <div class="chart-legend-item">
+                    <span class="chart-legend-dot" style="background:#d8703d;"></span>
+                    <span class="chart-legend-label">Analysés</span>
+                    <span class="chart-legend-value">{{ analysed_count }}</span>
+                    <span class="chart-legend-pct">{{ analysed_pct }}&nbsp;%</span>
+                </div>
+                <div class="chart-legend-item">
+                    <span class="chart-legend-dot" style="background:#e4ded5;"></span>
+                    <span class="chart-legend-label">Non analysés</span>
+                    <span class="chart-legend-value">{{ not_analysed_count }}</span>
+                    <span class="chart-legend-pct">{{ not_analysed_pct }}&nbsp;%</span>
+                </div>
+                {% if total_articles == 0 %}
+                    <p class="meta" style="margin-top:.8rem;">Aucun article.</p>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    {# Doughnut distribution par catégorie #}
+    <section class="card dashboard-chart-section">
+        <h2>Répartition par catégorie</h2>
+        {% if category_dist %}
+        <div class="dashboard-chart-layout">
+            <div class="dashboard-chart-wrap">
+                <canvas id="categoryPieChart" width="200" height="200"
+                        aria-label="Diagramme répartition des catégories" role="img"></canvas>
+            </div>
+            <div class="dashboard-chart-legend">
+                {% for cat in category_dist %}
+                <div class="chart-legend-item">
+                    <span class="chart-legend-dot cat-dot-{{ forloop.counter }}"></span>
+                    <span class="chart-legend-label" title="{{ cat.label }}">{{ cat.label|truncatechars:10 }}</span>
+                    <span class="chart-legend-value">{{ cat.count }}</span>
+                    <span class="chart-legend-pct">{% widthratio cat.count total_articles 100 %}&nbsp;%</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+            <p class="meta">Aucun article catégorisé pour le moment.</p>
+        {% endif %}
+    </section>
+
+</div>
+
+{# ── Graphiques: Publications & Commentaires (30 jours) ──────────────── #}
+<div class="dashboard-charts-row">
+    <section class="card dashboard-chart-section">
+        <h2>Articles publiés <span class="chart-subtitle">30 derniers jours</span></h2>
+        <div class="chart-full-wrap">
+            <canvas id="pubChart" height="220" aria-label="Articles publiés par jour" role="img"></canvas>
+        </div>
+    </section>
+    <section class="card dashboard-chart-section">
+        <h2>Commentaires <span class="chart-subtitle">30 derniers jours</span></h2>
+        <div class="chart-full-wrap">
+            <canvas id="commentChart" height="220" aria-label="Commentaires par jour" role="img"></canvas>
+        </div>
+    </section>
+</div>
+
+{# ── Graphique: Visites d'articles (30 jours) ────────────────────────── #}
+<section class="card dashboard-chart-section dashboard-full-chart">
+    <h2>Visites d'articles <span class="chart-subtitle">30 derniers jours</span></h2>
+    <div class="chart-full-wrap">
+        <canvas id="visitChart" height="200" aria-label="Visites d'articles par jour" role="img"></canvas>
+    </div>
+</section>
+
+{# ── Courbes par événement (OS, Navigateur, Appareil) 30 jours ───────── #}
+<div class="dashboard-charts-row dashboard-charts-row-3">
+    <section class="card dashboard-chart-section">
+        <h2>Systèmes d'exploitation <span class="chart-subtitle">30j</span></h2>
+        <div class="chart-full-wrap">
+            <canvas id="osLineChart" height="200" role="img"></canvas>
+        </div>
+    </section>
+    <section class="card dashboard-chart-section">
+        <h2>Navigateurs <span class="chart-subtitle">30j</span></h2>
+        <div class="chart-full-wrap">
+            <canvas id="browserLineChart" height="200" role="img"></canvas>
+        </div>
+    </section>
+    <section class="card dashboard-chart-section">
+        <h2>Type d'appareil <span class="chart-subtitle">30j</span></h2>
+        <div class="chart-full-wrap">
+            <canvas id="deviceLineChart" height="200" role="img"></canvas>
+        </div>
+    </section>
+</div>
+
+{# ── Résumé des commentaires ──────────────────────────────────────────── #}
+<section class="comments-summary-section">
+    <h2>Aperçu des commentaires</h2>
+    <div class="comments-summary-cards">
+        <div class="stat-card">
+            <p>Total commentaires</p>
+            <h3>{{ total_comments_count }}</h3>
+        </div>
+        <div class="stat-card">
+            <p>Commentaire le plus répondu</p>
+            <h3>{% if most_replied and most_replied.reply_count > 0 %}{{ most_replied.reply_count }} réponse{{ most_replied.reply_count|pluralize }}{% else %}—{% endif %}</h3>
+            {% if most_replied and most_replied.reply_count > 0 %}
+                <p class="meta">par {{ most_replied.name }} sur <a href="{% url 'blog:article_detail' most_replied.article.slug %}">{{ most_replied.article.title|truncatechars:30 }}</a></p>
             {% endif %}
-        </article>
-        {% endwith %}
-    {% empty %}
+        </div>
+    </div>
+
+    {% if comments_by_article %}
+    <div class="comments-summary-row">
+        <div class="comments-by-article card">
+            <h3>Articles les plus commentés</h3>
+            <ul class="top-commented-list">
+                {% for item in comments_by_article %}
+                <li>
+                    <a href="{% url 'blog:article_detail' item.article__slug %}">{{ item.article__title|truncatechars:40 }}</a>
+                    <span class="comment-badge">{{ item.count }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        {% if recent_comments %}
+        <div class="recent-comments-wrap card">
+            <h3>Commentaires récents</h3>
+            <div class="recent-comments-list">
+                {% for comment in recent_comments %}
+                <div class="recent-comment-card">
+                    <div class="recent-comment-header">
+                        <strong>{{ comment.name }}</strong>
+                        <span class="meta">{{ comment.created_at|timesince }} — sur <a href="{% url 'blog:article_detail' comment.article.slug %}">{{ comment.article.title|truncatechars:25 }}</a></span>
+                    </div>
+                    <p class="recent-comment-body">{{ comment.message|truncatechars:120 }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</section>
+
+{# ─────────────────────────────── Liste des articles ─────────────────────────────── #}
+<section class="articles-table-section">
+    <h2>Mes articles</h2>
+    {% if article_cards %}
+    <div class="articles-table-wrap">
+        <table class="articles-table">
+            <thead>
+                <tr>
+                    <th>Titre</th>
+                    <th>Catégorie</th>
+                    <th>Statut</th>
+                    <th>date de creation</th>
+                    <th>Mise à jour</th>
+                    <th>Lectures</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for card in article_cards %}
+                {% with article=card.article analytics=card.analytics %}
+                <tr class="articles-table-row">
+                    <td class="col-title">
+                        <a href="{% url 'blog:article_detail' article.slug %}" class="article-table-link">{{ article.title }}</a>
+                    </td>
+                    <td class="col-category">
+                        {% if article.category %}
+                            <span class="category-badge">{{ article.get_category_display }}</span>
+                        {% else %}
+                            <span class="meta">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="col-status">
+                        <span class="status-badge status-{{ article.status }}">{{ article.get_status_display }}</span>
+                    </td>
+                    <td class="col-date meta">{{ article.created_at|date:'d/m/Y' }}</td>
+                    <td class="col-date meta">{{ article.updated_at|date:'d/m/Y' }}</td>
+                    <td class="col-reads meta">{{ analytics.total_reads|default:0 }}</td>
+                    <td class="col-actions">
+                        <div class="col-actions-wrap">
+                        {% if article.status == 'published' %}
+                            <a class="btn-icon" href="{% url 'blog:article_detail' article.slug %}" title="Voir l'article">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </a>
+                        {% endif %}
+                            <a class="btn-icon" href="{% url 'blog:article_edit' article.slug %}" title="Modifier">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            </a>
+                            <a class="btn-icon btn-icon-danger" href="{% url 'blog:article_delete' article.slug %}" title="Supprimer" onclick="return confirm('Supprimer \'{{ article.title|escapejs }}\' ?')">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endwith %}
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
         <p>Vous n'avez pas encore d'article.</p>
-    {% endfor %}
+    {% endif %}
 </section>
 
 <section class="card wide">
-    <h3>Endpoint analytics externe configure</h3>
-    <p>{{ analytics_endpoint }}</p>
+    <h3>Endpoint analytics externe</h3>
+    <p class="meta">{{ analytics_endpoint }}</p>
 </section>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+/* ── Plugin texte central partagé ───────────────────────────────────── */
+var centerTextPlugin = {
+    id: 'centerText',
+    afterDraw: function (chart) {
+        var opts = (chart.options.plugins && chart.options.plugins.centerText) || {};
+        var value = opts.value != null ? opts.value : '';
+        var label = opts.label != null ? opts.label : '';
+        var w = chart.width, h = chart.height, c = chart.ctx;
+        c.save();
+        c.textAlign = 'center';
+        c.textBaseline = 'middle';
+        var cx = w / 2, cy = h / 2;
+        c.font = 'bold 1.5rem "Newsreader", serif';
+        c.fillStyle = '#211d1a';
+        c.fillText(value, cx, cy - 10);
+        c.font = '0.72rem "Public Sans", sans-serif';
+        c.fillStyle = '#6b645d';
+        c.fillText(label, cx, cy + 13);
+        c.restore();
+    }
+};
+
+/* ── Diagramme : Analysés vs Non analysés ───────────────────────────── */
+(function () {
+    var el = document.getElementById('analyserPieChart');
+    if (!el) return;
+    var analysed    = Number('{{ analysed_count }}');
+    var notAnalysed = Number('{{ not_analysed_count }}');
+    var total       = analysed + notAnalysed;
+    var data   = total > 0 ? [analysed, notAnalysed] : [1];
+    var colors = total > 0 ? ['#d8703d', '#e4ded5'] : ['#e4ded5'];
+    var labels = total > 0
+        ? ['Analysés — ' + analysed + ' ({{ analysed_pct }} %)',
+           'Non analysés — ' + notAnalysed + ' ({{ not_analysed_pct }} %)']
+        : ['Aucun article'];
+    var chart = new Chart(el, {
+        type: 'doughnut',
+        data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderColor: '#fffefc', borderWidth: 3, hoverOffset: 8 }] },
+        options: {
+            cutout: '62%',
+            animation: { animateRotate: true, duration: 700 },
+            plugins: {
+                legend: { display: false },
+                centerText: { value: total || 0, label: 'articles' },
+                tooltip: { callbacks: { label: function (c) {
+                    if (total === 0) return 'Aucun article';
+                    return c.label.split(' —')[0] + ' : ' + c.raw + ' (' + Math.round(c.raw * 100 / total) + ' %)';
+                }}}
+            }
+        },
+        plugins: [centerTextPlugin]
+    });
+})();
+
+/* ── Diagramme : Répartition par catégorie ──────────────────────────── */
+(function () {
+    var el = document.getElementById('categoryPieChart');
+    if (!el) return;
+    var PALETTE = [
+        '#d8703d','#4a90d9','#5cb85c','#9b59b6','#e8a87c',
+        '#e74c3c','#1abc9c','#f1c40f','#3498db','#e67e22',
+        '#2ecc71','#e91e63','#ff9800','#795548','#00bcd4',
+        '#607d8b','#9c27b0','#8bc34a','#ff5722','#7bc4e2'
+    ];
+    var labels = [{% for cat in category_dist %}"{{ cat.label }}"{% if not forloop.last %},{% endif %}{% endfor %}];
+    var counts = [{% for cat in category_dist %}{{ cat.count }}{% if not forloop.last %},{% endif %}{% endfor %}];
+    if (!labels.length) return;
+    var total  = counts.reduce(function (a, b) { return a + b; }, 0);
+    var colors = labels.map(function (_, i) { return PALETTE[i % PALETTE.length]; });
+
+    /* Colorier les points de légende */
+    colors.forEach(function (c, i) {
+        var dot = document.querySelector('.cat-dot-' + (i + 1));
+        if (dot) dot.style.background = c;
+    });
+
+    var chart = new Chart(el, {
+        type: 'doughnut',
+        data: { labels: labels, datasets: [{ data: counts, backgroundColor: colors, borderColor: '#fffefc', borderWidth: 2, hoverOffset: 8 }] },
+        options: {
+            cutout: '62%',
+            animation: { animateRotate: true, duration: 700 },
+            plugins: {
+                legend: { display: false },
+                centerText: { value: total, label: 'catégorisés' },
+                tooltip: { callbacks: { label: function (c) {
+                    return c.label + ' : ' + c.raw + ' (' + Math.round(c.raw * 100 / (total || 1)) + ' %)';
+                }}}
+            }
+        },
+        plugins: [centerTextPlugin]
+    });
+})();
+
+/* ── Publication bar chart (30 jours) ───────────────────────── */
+(function () {
+    var el = document.getElementById('pubChart');
+    if (!el) return;
+    var labels = {{ pub_labels_json|safe }};
+    var data = {{ pub_data_json|safe }};
+    var isSunday = {{ pub_is_sunday_json|safe }};
+    var colors = data.map(function(_, i) {
+        return isSunday[i] ? '#d8703d' : '#e8c4a8';
+    });
+    var borderColors = data.map(function(_, i) {
+        return isSunday[i] ? '#b8552a' : '#d8a87c';
+    });
+    new Chart(el, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Articles',
+                data: data,
+                backgroundColor: colors,
+                borderColor: borderColors,
+                borderWidth: 1,
+                borderRadius: 4,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: {
+                callbacks: { title: function(items) {
+                    var i = items[0].dataIndex;
+                    return labels[i] + (isSunday[i] ? ' (fin de semaine)' : '');
+                }}
+            }},
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 45 } },
+                y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: '#f0ebe5' } }
+            }
+        }
+    });
+})();
+
+/* ── Comments line chart (30 jours) ─────────────────────────── */
+(function () {
+    var el = document.getElementById('commentChart');
+    if (!el) return;
+    var labels = {{ comment_chart_labels_json|safe }};
+    var data = {{ comment_chart_data_json|safe }};
+    new Chart(el, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Commentaires',
+                data: data,
+                borderColor: '#4a90d9',
+                backgroundColor: 'rgba(74,144,217,0.12)',
+                fill: true,
+                tension: 0.35,
+                pointRadius: 2,
+                pointHoverRadius: 5,
+                pointBackgroundColor: '#4a90d9',
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 45 } },
+                y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: '#f0ebe5' } }
+            }
+        }
+    });
+})();
+
+/* ── Visits line chart (30 jours) ───────────────────────────── */
+(function () {
+    var el = document.getElementById('visitChart');
+    if (!el) return;
+    var labels = {{ visit_chart_labels_json|safe }};
+    var data = {{ visit_chart_data_json|safe }};
+    new Chart(el, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Visites',
+                data: data,
+                borderColor: '#5cb85c',
+                backgroundColor: 'rgba(92,184,92,0.12)',
+                fill: true,
+                tension: 0.35,
+                pointRadius: 2,
+                pointHoverRadius: 5,
+                pointBackgroundColor: '#5cb85c',
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 45 } },
+                y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: '#f0ebe5' } }
+            }
+        }
+    });
+})();
+
+/* ── Helper: build multi-line chart for event breakdown ──────── */
+var LINE_PALETTE = ['#d8703d','#4a90d9','#5cb85c','#9b59b6','#e8a87c','#e74c3c','#1abc9c','#f1c40f','#3498db','#e67e22'];
+function buildEventLineChart(canvasId, seriesObj, labels) {
+    var el = document.getElementById(canvasId);
+    if (!el) return;
+    var names = Object.keys(seriesObj);
+    if (!names.length) return;
+    var datasets = names.map(function(name, i) {
+        var color = LINE_PALETTE[i % LINE_PALETTE.length];
+        return {
+            label: name,
+            data: seriesObj[name],
+            borderColor: color,
+            fill: false,
+            tension: 0.35,
+            pointRadius: 2,
+            pointHoverRadius: 5,
+            pointBackgroundColor: color,
+            borderWidth: 2,
+        };
+    });
+    new Chart(el, {
+        type: 'line',
+        data: { labels: labels, datasets: datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: true, position: 'bottom', labels: { boxWidth: 12, padding: 10, font: { size: 11 } } }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 9 }, maxRotation: 45 } },
+                y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } }, grid: { color: '#f0ebe5' } }
+            }
+        }
+    });
+}
+var _visitLabels = {{ visit_chart_labels_json|safe }};
+buildEventLineChart('osLineChart', {{ os_series_json|safe }}, _visitLabels);
+buildEventLineChart('browserLineChart', {{ browser_series_json|safe }}, _visitLabels);
+buildEventLineChart('deviceLineChart', {{ device_series_json|safe }}, _visitLabels);
+</script>
 {% endblock %}

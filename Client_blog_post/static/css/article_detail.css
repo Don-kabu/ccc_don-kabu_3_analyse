@@ -1,0 +1,441 @@
+/* ═══════════════════════════════════════════════════
+   article_detail.css  —  Styles propres à la page de lecture
+   ═══════════════════════════════════════════════════ */
+
+/* ── Mise en page lecteur ──────────────────────────── */
+.reader {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.reader .hero-image {
+  width: 100%;
+  margin-top: 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+}
+
+.reader section {
+  margin-top: 1.4rem;
+  padding-top: 0.6rem;
+}
+
+/* ── Eyebrow (surtitre) ────────────────────────────── */
+.eyebrow {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent-deep);
+  font-size: 0.75rem;
+}
+
+/* ── Contenu riche (HTML sanitisé) ────────────────── */
+.rich-content p {
+  margin-top: 0.2rem;
+  margin-bottom: 0.9rem;
+}
+
+.rich-content h2,
+.rich-content h3 {
+  margin: 1rem 0 0.6rem;
+}
+
+.rich-content ul,
+.rich-content ol {
+  margin: 0.4rem 0 1rem 1.2rem;
+}
+
+.rich-content blockquote {
+  margin: 1rem 0;
+  padding: 0.6rem 0.9rem;
+  border-left: 3px solid #d4b7a4;
+  background: #fdf8f2;
+}
+
+.rich-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+}
+
+/* ── Commentaires ──────────────────────────────────── */
+.comment-box {
+  border-top: 1px solid var(--line);
+  margin-top: 2.4rem;
+  padding-top: 1.6rem;
+}
+
+.comment-box > h2 {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  margin-bottom: 1.4rem;
+}
+
+.comment-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6rem;
+  height: 1.6rem;
+  padding: 0 .45rem;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 999px;
+  font-size: .78rem;
+  font-weight: 700;
+}
+
+/* Message de succès */
+.comment-success {
+  background: #f0faf4;
+  border: 1px solid #a8d5b5;
+  border-radius: 8px;
+  padding: .6rem .9rem;
+  color: #2a6e45;
+  font-size: .9rem;
+  margin-bottom: 1.2rem;
+}
+
+/* ── Formulaire principal ──────────────────────────── */
+.comment-form-wrapper {
+  background: #fdf8f2;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1.3rem;
+  margin-bottom: 2rem;
+}
+
+.comment-form-wrapper h3 {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+}
+
+.comment-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .6rem;
+  margin-bottom: .6rem;
+}
+
+.comment-form .field-group,
+.reply-form .field-group {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+  margin-bottom: .6rem;
+}
+
+.comment-form label,
+.reply-form label {
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.required { color: var(--accent); }
+.optional { font-weight: 400; color: var(--muted); font-size: .78rem; }
+
+.char-counter {
+  text-align: right;
+  font-size: .74rem;
+  color: var(--muted);
+  margin-top: .12rem;
+}
+
+/* ── Carte commentaire ─────────────────────────────── */
+.comment {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: .9rem 1rem;
+  background: #fff;
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  margin-bottom: .55rem;
+}
+
+.comment-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: .95rem;
+  color: #fff;
+  flex-shrink: 0;
+  /* background set by JS */
+}
+
+.comment-avatar--sm {
+  width: 30px;
+  height: 30px;
+  font-size: .78rem;
+}
+
+.comment-meta {
+  display: flex;
+  flex-direction: column;
+  gap: .1rem;
+  min-width: 0;
+}
+
+.comment-author {
+  font-size: .9rem;
+}
+
+.comment-header .meta {
+  font-size: .74rem;
+}
+
+.comment-body p {
+  margin: 0;
+  font-size: .95rem;
+  line-height: 1.65;
+}
+
+/* ── Bouton Répondre ───────────────────────────────── */
+.btn-reply {
+  margin-left: auto;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: .22rem .7rem;
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--accent-deep);
+  cursor: pointer;
+  transition: background .15s;
+  flex-shrink: 0;
+}
+
+.btn-reply:hover {
+  background: #f8ebe3;
+  border-color: var(--accent);
+}
+
+/* ── Réponses imbriquées ───────────────────────────── */
+.replies-list {
+  margin-top: .75rem;
+  margin-left: 2.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+/* Profondeur 2 — réduire l'indentation */
+.replies-list .replies-list {
+  margin-left: 1.6rem;
+}
+
+/* Profondeur 3+ — plus d'indentation, différencier par la couleur */
+.replies-list .replies-list .replies-list {
+  margin-left: 0;
+}
+
+.comment-reply {
+  border-color: #eedfd5;
+  background: #fdf8f4;
+}
+
+/* Couleur légèrement plus foncée pour les niveaux profonds */
+.replies-list .replies-list .comment-reply {
+  background: #f5ece3;
+  border-color: #e0c9bb;
+}
+
+/* ── Formulaire de réponse inline ──────────────────── */
+.reply-form-wrap {
+  margin-top: .85rem;
+  border-top: 1px dashed var(--line);
+  padding-top: .85rem;
+}
+
+.reply-to-label {
+  font-size: .82rem;
+  color: var(--muted);
+  margin: 0 0 .6rem;
+}
+
+.reply-form {
+  background: #f5efe8;
+  border-radius: 8px;
+  padding: .85rem;
+}
+
+/* ── Responsive ─────────────────────────────────────── */
+@media (max-width: 600px) {
+  .comment-form-row {
+    grid-template-columns: 1fr;
+  }
+  .replies-list {
+    margin-left: 1.2rem;
+  }
+}
+
+/* -- Badge de categorie ------------------------------ */
+.category-badge {
+  display: inline-block;
+  font-size: .75rem;
+  font-weight: 700;
+  background: #f2cab5;
+  color: var(--accent-deep);
+  border: 1px solid #f1d3c1;
+  border-radius: 999px;
+  padding: .15rem .6rem;
+  margin-bottom: .3rem;
+  white-space: nowrap;
+}
+
+/* ── Bouton Partager ───────────────────────────────── */
+.btn-share {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: .4rem .85rem;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--accent-deep);
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+  margin-top: .4rem;
+}
+
+.btn-share:hover {
+  background: #f8ebe3;
+  border-color: var(--accent);
+}
+
+.btn-share svg {
+  flex-shrink: 0;
+}
+
+/* ── Modal de partage (overlay) ────────────────────── */
+.share-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(33, 29, 26, .45);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn .2s ease;
+}
+
+.share-modal-overlay.active {
+  display: flex;
+}
+
+.share-modal {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, .18);
+  width: 90%;
+  max-width: 480px;
+  animation: slideUp .25s ease;
+}
+
+.share-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.3rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.share-modal-header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.share-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  color: var(--muted);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 .2rem;
+}
+
+.share-modal-close:hover {
+  color: var(--ink);
+}
+
+.share-modal-body {
+  padding: 1.2rem 1.3rem 1.4rem;
+}
+
+.share-modal-label {
+  font-size: .82rem;
+  font-weight: 600;
+  margin: 0 0 .5rem;
+  color: var(--muted);
+}
+
+.share-link-row {
+  display: flex;
+  gap: .4rem;
+}
+
+.share-link-input {
+  flex: 1;
+  padding: .5rem .7rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: .85rem;
+  background: #fdf8f2;
+  color: var(--ink);
+  min-width: 0;
+}
+
+.share-link-input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.btn-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .5rem .8rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s;
+}
+
+.btn-copy:hover {
+  background: var(--accent-deep);
+}
+
+.share-copy-feedback {
+  margin: .6rem 0 0;
+  font-size: .82rem;
+  font-weight: 600;
+  color: #2a6e45;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}

@@ -1,39 +1,79 @@
 {% extends 'blog/base.html' %}
+{% load static %}
 
 {% block title %}EduTrack | Explorer{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/article_list.css' %}">
+{% endblock %}
+
 {% block content %}
 <section class="list-header">
-    <h1>Explorer les articles pedagogiques</h1>
-    <form method="get" class="search-form">
-        <input type="text" name="q" value="{{ query }}" placeholder="Rechercher par theme, tag ou contenu">
-        <button class="btn btn-primary" type="submit">Rechercher</button>
+    <h1>Explorer</h1>
+    <p class="list-header-sub">Trouvez des articles pédagogiques par thème, tag ou contenu.</p>
+    <form method="get" class="search-bar">
+        <svg class="search-bar-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" name="q" value="{{ query }}" placeholder="Rechercher..." autocomplete="off">
+        {% if active_category %}<input type="hidden" name="category" value="{{ active_category }}">{% endif %}
+        {% if query %}
+            <a href="{% url 'blog:article_list' %}{% if active_category %}?category={{ active_category }}{% endif %}" class="search-bar-clear" title="Effacer">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </a>
+        {% endif %}
+        <button class="search-bar-btn" type="submit">Rechercher</button>
     </form>
 </section>
 
-<div class="article-list">
+{# ── Filtres catégorie ──────────────────────────────────────────────── #}
+<div class="category-filter-bar">
+    <a href="{% url 'blog:article_list' %}{% if query %}?q={{ query }}{% endif %}"
+       class="category-chip {% if not active_category %}active{% endif %}">Toutes</a>
+    {% for cat_value, cat_label in categories %}
+        <a href="{% url 'blog:article_list' %}?category={{ cat_value }}{% if query %}&q={{ query }}{% endif %}"
+           class="category-chip {% if active_category == cat_value %}active{% endif %}">{{ cat_label }}</a>
+    {% endfor %}
+</div>
+
+<div class="article-feed">
     {% for article in articles %}
-        <article class="article-row">
-            <a href="{% url 'blog:article_detail' article.slug %}" class="thumb-wrap" aria-label="Lire {{ article.title }}">
-                {% if article.illustration_url %}
-                    <img src="{{ article.illustration_url }}" alt="Illustration de {{ article.title }}" class="thumb">
-                {% else %}
-                    <div class="thumb thumb-fallback">EduTrack</div>
-                {% endif %}
-            </a>
-            <div class="article-content">
-                <h2><a href="{% url 'blog:article_detail' article.slug %}">{{ article.title }}</a></h2>
-                <p class="meta">Par {{ article.author }}{% if article.published_at %} • {{ article.published_at|date:'d/m/Y' }}{% endif %}</p>
-                <p>{{ article.intro|truncatechars:230 }}</p>
-                <div class="tags">
+    <article class="feed-item">
+        <div class="feed-item-body">
+            {% if article.category %}
+                <span class="category-badge category-badge-sm">{{ article.get_category_display }}</span>
+            {% endif %}
+            <h2><a href="{% url 'blog:article_detail' article.slug %}">{{ article.title }}</a></h2>
+            <p class="meta">Par {{ article.author }} • {{ article.created_at|date:'d/m/Y' }}</p>
+            <p class="feed-intro">{{ article.intro|striptags|truncatechars:220 }}</p>
+            <div class="feed-footer">
+                <div class="article-stats-bar">
+                    <span class="stat-pill" title="Vues">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        {{ article.view_count }}
+                    </span>
+                    <a href="{% url 'blog:article_detail' article.slug %}#section-comments" class="stat-pill stat-pill-link" title="Commenter">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                        {{ article.comment_count }}
+                    </a>
+                </div>
+                <div class="feed-tags">
                     {% for tag in article.tags.all %}
                         <a href="{% url 'blog:article_list' %}?tag={{ tag.slug }}" class="tag{% if active_tag == tag.slug %} active{% endif %}">#{{ tag.name }}</a>
                     {% endfor %}
                 </div>
             </div>
-        </article>
+        </div>
+        <a href="{% url 'blog:article_detail' article.slug %}" class="feed-item-img-wrap" aria-label="Lire {{ article.title }}">
+            {% if article.illustration_url %}
+                <img src="{{ article.illustration_url }}" alt="{{ article.title }}" class="feed-item-img">
+            {% elif article.illustration_upload %}
+                <img src="{{ article.illustration_upload.url }}" alt="{{ article.title }}" class="feed-item-img">
+            {% else %}
+                <div class="feed-item-img feed-item-img-fallback">EduTrack</div>
+            {% endif %}
+        </a>
+    </article>
     {% empty %}
-        <p>Aucun article ne correspond a votre recherche.</p>
+        <p class="empty-state">Aucun article ne correspond à votre recherche.</p>
     {% endfor %}
 </div>
 {% endblock %}

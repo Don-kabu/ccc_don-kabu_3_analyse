@@ -21,10 +21,45 @@ class Article(models.Model):
 		DRAFT = 'draft', 'Brouillon'
 		PUBLISHED = 'published', 'Publie'
 
+	class Category(models.TextChoices):
+		HISTOIRES_CONTES         = 'histoires_contes',         'Histoires courtes et contes'
+		DEFIS_REFLEXION          = 'defis_reflexion',          'Défis de réflexion'
+		DECOUVERTE_MONDE         = 'decouverte_monde',         'Découverte du monde'
+		SCIENCES_AMUSANTES       = 'sciences_amusantes',       'Sciences amusantes'
+		MATHS_LUDIQUES           = 'maths_ludiques',           'Mathématiques ludiques'
+		APPRENTISSAGE_MOTS       = 'apprentissage_mots',       'Apprentissage des mots'
+		ACTIVITES_CREATIVES      = 'activites_creatives',      'Activités créatives'
+		VIE_QUOTIDIENNE          = 'vie_quotidienne',          'Histoires de la vie quotidienne'
+		VALEURS_COMPORTEMENTS    = 'valeurs_comportements',    'Valeurs et comportements'
+		ANIMAUX_NATURE           = 'animaux_nature',           'Animaux et nature'
+		HISTOIRE_SIMPLIFIEE      = 'histoire_simplifiee',      'Histoire simplifiée'
+		INITIATION_NUMERIQUE     = 'initiation_numerique',     'Initiation au numérique'
+		JEUX_ROLE_IMAGINATION    = 'jeux_role_imagination',    'Jeux de rôle et imagination'
+		JEUX_EDUCATIFS           = 'jeux_educatifs',           'Jeux éducatifs interactifs'
+		COMPTINES_CHANSONS       = 'comptines_chansons',       'Comptines et chansons'
+		METIERS_REVES            = 'metiers_reves',            'Métiers et rêves'
+		ECOLOGIE_ENVIRONNEMENT   = 'ecologie_environnement',   'Écologie et environnement'
+		EMOTIONS_BIENETRE        = 'emotions_bienetre',        'Émotions et bien-être'
+		LANGUES_COMMUNICATION    = 'langues_communication',    'Langues et communication'
+		HISTOIRES_INTERACTIVES   = 'histoires_interactives',   'Histoires interactives'
+
 	author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='articles')
 	title = models.CharField(max_length=220)
 	slug = models.SlugField(max_length=250, unique=True, blank=True)
+	category = models.CharField(
+		max_length=40,
+		choices=Category.choices,
+		blank=True,
+		db_index=True,
+		help_text='Catégorie principale de l\'article.',
+	)
 	illustration_url = models.URLField(blank=True)
+	illustration_upload = models.FileField(upload_to='articles/images/', blank=True, null=True)
+	video_url = models.URLField(blank=True)
+	video_upload = models.FileField(upload_to='articles/videos/', blank=True, null=True)
+	audio_url = models.URLField(blank=True)
+	audio_upload = models.FileField(upload_to='articles/audio/', blank=True, null=True)
+	enable_analytics = models.BooleanField(default=True)
 	intro = models.TextField()
 	objectives = models.TextField(help_text='Une ligne par objectif pedagogique.')
 	content = models.TextField(help_text='Corps principal de l article.')
@@ -48,8 +83,16 @@ class Article(models.Model):
 
 class ReaderComment(models.Model):
 	article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='comments')
+	parent = models.ForeignKey(
+		'self',
+		on_delete=models.CASCADE,
+		null=True,
+		blank=True,
+		related_name='replies',
+	)
 	name = models.CharField(max_length=120, default='Lecteur')
-	message = models.TextField()
+	email = models.EmailField(blank=True, help_text='Optionnel — non publié')
+	message = models.TextField(max_length=1000)
 	created_at = models.DateTimeField(auto_now_add=True)
 	is_approved = models.BooleanField(default=True)
 

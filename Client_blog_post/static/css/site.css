@@ -1,3 +1,9 @@
+/* ═══════════════════════════════════════════════════
+   site.css  —  Styles globaux partagés par toutes les pages
+                (reset, layout, navigation, composants communs)
+   ═══════════════════════════════════════════════════ */
+
+/* ── Variables couleurs ────────────────────────────── */
 :root {
   --bg: #faf8f3;
   --paper: #fffefc;
@@ -9,6 +15,7 @@
   --danger: #a03928;
 }
 
+/* ── Reset minimal ─────────────────────────────────── */
 * {
   box-sizing: border-box;
 }
@@ -32,12 +39,14 @@ a {
   color: inherit;
 }
 
+/* ── Conteneur centré ──────────────────────────────── */
 .container {
   width: min(100%, 980px);
   margin: 0 auto;
   padding: 0 1rem;
 }
 
+/* ── Barre de navigation ───────────────────────────── */
 .topbar {
   position: sticky;
   top: 0;
@@ -103,6 +112,7 @@ a {
   height: 1.1rem;
 }
 
+/* ── Accessibilité ─────────────────────────────────── */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -115,6 +125,7 @@ a {
   border: 0;
 }
 
+/* ── Animation d'entrée de page ────────────────────── */
 .page-enter {
   animation: rise 0.45s ease;
   padding-top: 1.8rem;
@@ -123,38 +134,10 @@ a {
 
 @keyframes rise {
   from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.hero {
-  background: linear-gradient(145deg, #fffaf0, #f9f0e8);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 2rem;
-  margin-bottom: 2rem;
-}
-
-.eyebrow {
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--accent-deep);
-  font-size: 0.75rem;
-}
-
-.hero h1 {
-  font-size: clamp(2rem, 5vw, 3.2rem);
-  margin: 0.2rem 0 0.5rem;
-}
-
-.hero-actions,
-.row-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  margin-top: 1rem;
-}
-
+/* ── Boutons ───────────────────────────────────────── */
 .btn {
   border: 1px solid var(--line);
   background: #fff;
@@ -178,6 +161,7 @@ a {
   color: #fff;
 }
 
+/* ── Composants partagés ───────────────────────────── */
 .grid.two {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -235,209 +219,14 @@ a {
   margin-bottom: 1rem;
 }
 
-.article-list {
-  display: grid;
-  gap: 1rem;
-}
-
-.article-row {
-  display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
-  gap: 1rem;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--paper);
-  padding: 0.9rem;
-}
-
-.thumb-wrap {
-  display: block;
-  text-decoration: none;
-}
-
-.thumb {
-  width: 100%;
-  height: 140px;
-  object-fit: cover;
-  border-radius: 10px;
-  border: 1px solid var(--line);
-  display: block;
-}
-
-.thumb-fallback {
-  background: linear-gradient(145deg, #f4e5d4, #f8efe5);
-  color: var(--accent-deep);
-  font-weight: 700;
-  display: grid;
-  place-items: center;
-}
-
-.article-content h2 {
-  margin: 0;
-}
-
-.article-content .meta {
-  margin: 0.35rem 0 0.55rem;
-}
-
-.article-content p {
-  margin: 0;
-}
-
-.search-form {
+.row-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem;
-}
-
-input,
-textarea,
-select {
-  width: 100%;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 0.7rem;
-  background: #fff;
-}
-
-.search-form input {
-  width: min(100%, 340px);
-}
-
-.form-grid p {
-  margin: 0 0 0.9rem;
-}
-
-.field-group {
-  display: grid;
-  gap: 0.35rem;
-  margin-bottom: 1rem;
-}
-
-.field-group label {
-  font-weight: 600;
-}
-
-.wysiwyg-source {
-  display: none;
-}
-
-.quill-editor {
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-}
-
-.quill-editor .ql-toolbar.ql-snow {
-  border: 0;
-  border-bottom: 1px solid var(--line);
-  border-radius: 10px 10px 0 0;
-}
-
-.quill-editor .ql-container.ql-snow {
-  border: 0;
-  min-height: 160px;
-  border-radius: 0 0 10px 10px;
-}
-
-.quill-editor-large .ql-container.ql-snow {
-  min-height: 320px;
-}
-
-.save-state {
-  align-self: center;
-}
-
-.rich-content p {
-  margin-top: 0.2rem;
-  margin-bottom: 0.9rem;
-}
-
-.rich-content h2,
-.rich-content h3 {
-  margin: 1rem 0 0.6rem;
-}
-
-.rich-content ul,
-.rich-content ol {
-  margin: 0.4rem 0 1rem 1.2rem;
-}
-
-.rich-content blockquote {
-  margin: 1rem 0;
-  padding: 0.6rem 0.9rem;
-  border-left: 3px solid #d4b7a4;
-  background: #fdf8f2;
-}
-
-.rich-content img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 10px;
-  border: 1px solid var(--line);
-}
-
-.help-text {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.88rem;
-}
-
-.form-errors,
-.field-errors {
-  color: var(--danger);
-  font-size: 0.92rem;
-}
-
-.field-errors ul,
-.form-errors ul {
-  margin: 0;
-  padding-left: 1rem;
-}
-
-.reader {
-  max-width: 760px;
-  margin: 0 auto;
-}
-
-.reader .hero-image {
-  width: 100%;
+  gap: 0.6rem;
   margin-top: 1rem;
-  border-radius: 12px;
-  border: 1px solid var(--line);
 }
 
-.reader section {
-  margin-top: 1.4rem;
-  padding-top: 0.6rem;
-}
-
-.comment-box {
-  border-top: 1px solid var(--line);
-  margin-top: 2rem;
-  padding-top: 1rem;
-}
-
-.comment {
-  border: 1px dashed var(--line);
-  border-radius: 10px;
-  padding: 0.8rem;
-}
-
-.stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.7rem;
-  margin-bottom: 1rem;
-}
-
-.stat-card {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 0.9rem;
-  background: linear-gradient(130deg, #fff, #fbf7f1);
-}
-
+/* ── Notifications flash ───────────────────────────── */
 .alerts {
   margin-top: 1rem;
 }
@@ -450,11 +239,18 @@ select {
   border-radius: 8px;
 }
 
-.auth-card {
-  max-width: 460px;
-  margin: 2rem auto;
+/* ── Champs de formulaire (reset commun) ───────────── */
+input,
+textarea,
+select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.7rem;
+  background: #fff;
 }
 
+/* ── Pied de page ──────────────────────────────────── */
 .footer {
   border-top: 1px solid var(--line);
   padding: 1rem 0;
@@ -468,21 +264,14 @@ select {
   flex-wrap: wrap;
 }
 
+/* ── Responsive global ─────────────────────────────── */
 @media (max-width: 768px) {
-  .grid.two,
-  .stats {
+  .grid.two {
     grid-template-columns: 1fr;
-  }
-
-  .article-row {
-    grid-template-columns: 1fr;
-  }
-
-  .thumb {
-    height: 180px;
   }
 
   .brand {
     font-size: 1.35rem;
   }
 }
+
