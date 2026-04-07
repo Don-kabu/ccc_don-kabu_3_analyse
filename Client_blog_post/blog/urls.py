@@ -15,5 +15,6 @@ urlpatterns = [
     path('articles/<slug:slug>/delete/', views.article_delete, name='article_delete'),
     path('dashboard/', views.author_dashboard, name='author_dashboard'),
     path('analytics/track/', views.track_analytics, name='track_analytics'),
+    path('analytics/share/', views.track_share, name='track_share'),
     path("accounts/logout/", views.logout_view, name="logout"),
 ]

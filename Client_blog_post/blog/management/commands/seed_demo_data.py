@@ -77,6 +77,14 @@ DEMO_ARTICLES = [
 ]
 
 
+
+
+
+
+
+
+
+
 class Command(BaseCommand):
     help = 'Cree des comptes auteurs et des articles de demonstration pour EduTrack.'
 

@@ -1,0 +1,144 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Page introuvable | EduTrack</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,700&family=Public+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #faf8f3;
+            --paper: #fffefc;
+            --ink: #211d1a;
+            --muted: #6b645d;
+            --line: #e4ded5;
+            --accent: #d8703d;
+            --accent-deep: #ab4e25;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at top right, #f5eee4, var(--bg) 45%);
+            color: var(--ink);
+            font-family: "Public Sans", sans-serif;
+            line-height: 1.6;
+            text-align: center;
+            padding: 2rem;
+        }
+        .error-container {
+            max-width: 520px;
+        }
+        .error-code {
+            font-family: "Newsreader", serif;
+            font-size: clamp(5rem, 15vw, 9rem);
+            font-weight: 700;
+            line-height: 1;
+            color: var(--accent);
+            letter-spacing: -0.04em;
+            margin-bottom: .2rem;
+        }
+        .error-title {
+            font-family: "Newsreader", serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: .6rem;
+        }
+        .error-description {
+            color: var(--muted);
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            line-height: 1.7;
+        }
+        .error-illustration {
+            margin-bottom: 1.5rem;
+        }
+        .error-illustration svg {
+            width: 140px;
+            height: 140px;
+            color: var(--accent);
+            opacity: .7;
+        }
+        .error-actions {
+            display: flex;
+            gap: .75rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .6rem 1.4rem;
+            border-radius: 8px;
+            font-size: .9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background .15s, color .15s, border-color .15s;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .btn-primary:hover {
+            background: var(--accent-deep);
+            border-color: var(--accent-deep);
+        }
+        .btn-outline {
+            background: transparent;
+            color: var(--accent-deep);
+            border-color: var(--accent);
+        }
+        .btn-outline:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+        .brand-footer {
+            margin-top: 3rem;
+            font-family: "Newsreader", serif;
+            font-weight: 700;
+            color: var(--muted);
+            font-size: .9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-illustration">
+            <svg viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="70" cy="70" r="65" stroke="currentColor" stroke-width="3" stroke-dasharray="8 6" opacity=".3"/>
+                <circle cx="70" cy="70" r="45" stroke="currentColor" stroke-width="2" opacity=".15"/>
+                <path d="M55 60c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4zM77 60c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4z" fill="currentColor" opacity=".6"/>
+                <path d="M52 92c3-8 10-13 18-13s15 5 18 13" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none" opacity=".5"/>
+                <path d="M40 45l-8-8M100 45l8-8M70 30V20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity=".3"/>
+            </svg>
+        </div>
+        <div class="error-code">404</div>
+        <h1 class="error-title">Page introuvable</h1>
+        <p class="error-description">
+            Oups ! La page que vous cherchez semble avoir disparu,
+            a été déplacée ou n'a jamais existé.
+        </p>
+        <div class="error-actions">
+            <a class="btn btn-primary" href="/">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M9 21V12h6v9"/></svg>
+                Retour à l'accueil
+            </a>
+            <a class="btn btn-outline" href="/articles/">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Explorer les articles
+            </a>
+        </div>
+        <p class="brand-footer">EduTrack CMS</p>
+    </div>
+</body>
+</html>

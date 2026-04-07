@@ -18,6 +18,11 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import include, path
+from pathlib import Path
+
+from blog.views import custom_404
+
+handler404 = custom_404
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,4 +31,10 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
+    urlpatterns += [
+        path('404/', custom_404),
+    ]
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # Servir les fichiers statiques en développement
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    urlpatterns += static(settings.STATIC_URL, document_root=BASE_DIR / 'static')

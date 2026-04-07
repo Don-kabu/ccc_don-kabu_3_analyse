@@ -319,6 +319,21 @@
   flex-shrink: 0;
 }
 
+.share-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 .35rem;
+  font-size: .72rem;
+  font-weight: 700;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 999px;
+  line-height: 1;
+}
+
 /* ── Modal de partage (overlay) ────────────────────── */
 .share-modal-overlay {
   display: none;

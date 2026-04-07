@@ -20,6 +20,10 @@ from .forms import ArticleForm, AuthorSignupForm, ReaderCommentForm
 from .models import ActionLog, AnalyticsEvent, Article, ArticleAnalytics, ReaderComment
 
 
+def custom_404(request, exception=None):
+	return render(request, '404.html', status=404)
+
+
 def _parse_lines(text):
 	return [line.strip() for line in text.splitlines() if line.strip()]
 
@@ -114,6 +118,7 @@ def home(request):
 		.annotate(
 			view_count=Count('action_logs', filter=Q(action_logs__action='article_view')),
 			comment_count=Count('comments', filter=Q(comments__is_approved=True)),
+			share_count=Count('action_logs', filter=Q(action_logs__action='article_share')),
 		)
 		.order_by('-created_at')[:6]
 	)
@@ -150,6 +155,7 @@ def article_list(request):
 		.annotate(
 			view_count=Count('action_logs', filter=Q(action_logs__action='article_view')),
 			comment_count=Count('comments', filter=Q(comments__is_approved=True)),
+			share_count=Count('action_logs', filter=Q(action_logs__action='article_share')),
 		)
 	)
 
@@ -263,6 +269,7 @@ def article_detail(request, slug):
 		'comment_form': form,
 		'comments': roots,
 		'comment_count': len(all_comments),
+		'share_count': ActionLog.objects.filter(action='article_share', article=article).count(),
 		'analytics': analytics,
 	}
 	_log_action(request, 'article_view', article=article, payload={'actor_type': 'reader'})
@@ -276,6 +283,7 @@ def author_dashboard(request):
 	analytics_by_article = {row.article_id: row for row in analytics_rows}
 
 	total_reads = ActionLog.objects.filter(action='article_view', article__author=request.user).count()
+	total_shares = ActionLog.objects.filter(action='article_share', article__author=request.user).count()
 	total_seconds = analytics_rows.aggregate(total=Sum('total_seconds_read'))['total'] or 0
 	avg_time = round((total_seconds / total_reads), 1) if total_reads else 0
 
@@ -482,6 +490,7 @@ def author_dashboard(request):
 				for article in own_articles
 			],
 			'total_reads': total_reads,
+			'total_shares': total_shares,
 			'avg_time': avg_time,
 			'top_section': top_section,
 			'analytics_rows': analytics_rows,
@@ -630,6 +639,22 @@ def track_analytics(request):
 
 	return JsonResponse({'ok': True})
 
+
+
+@csrf_exempt
+@require_POST
+def track_share(request):
+	try:
+		payload = json.loads(request.body.decode('utf-8'))
+	except json.JSONDecodeError:
+		return JsonResponse({'ok': False, 'error': 'invalid json'}, status=400)
+	article_id = payload.get('article_id')
+	if not article_id:
+		return JsonResponse({'ok': False, 'error': 'missing article_id'}, status=400)
+	article = get_object_or_404(Article, id=article_id, status=Article.Status.PUBLISHED)
+	_log_action(request, 'article_share', article=article, payload={'actor_type': 'reader'})
+	share_count = ActionLog.objects.filter(action='article_share', article=article).count()
+	return JsonResponse({'ok': True, 'share_count': share_count})
 
 
 def logout_view(request):
