@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Documentation Technique — EduTrack CMS</title>
+<style>
+  :root { --bg:#faf8f3; --paper:#fffefc; --ink:#211d1a; --muted:#6b645d; --line:#e4ded5; --accent:#d8703d; --accent-deep:#ab4e25; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.7;padding:2rem 1rem}
+  .doc{max-width:960px;margin:0 auto;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:2.5rem 2.5rem 3rem;box-shadow:0 2px 24px rgba(0,0,0,.04)}
+  h1{font-size:2rem;border-bottom:3px solid var(--accent);padding-bottom:.5rem;margin-bottom:1.5rem}
+  h2{font-size:1.45rem;margin:2rem 0 .8rem;color:var(--accent-deep);border-left:4px solid var(--accent);padding-left:.7rem}
+  h3{font-size:1.1rem;margin:1.2rem 0 .5rem;color:var(--ink)}
+  p,li{margin-bottom:.5rem}
+  ul,ol{padding-left:1.5rem}
+  table{width:100%;border-collapse:collapse;margin:.8rem 0 1.2rem;font-size:.92rem}
+  th,td{border:1px solid var(--line);padding:.45rem .7rem;text-align:left}
+  th{background:#f4efe8;font-weight:700;white-space:nowrap}
+  code{background:#f0ece6;padding:.1rem .35rem;border-radius:4px;font-size:.88em;font-family:'Cascadia Code','Fira Code',monospace}
+  pre{background:#f0ece6;border:1px solid var(--line);border-radius:8px;padding:1rem;overflow-x:auto;font-size:.85rem;margin:.8rem 0 1.2rem;font-family:'Cascadia Code','Fira Code',monospace;line-height:1.5}
+  .badge{display:inline-block;font-size:.72rem;font-weight:700;padding:.15rem .55rem;border-radius:999px;color:#fff;vertical-align:middle}
+  .badge-get{background:#2e86de}.badge-post{background:#27ae60}
+  .toc{background:#f9f6f0;border:1px solid var(--line);border-radius:10px;padding:1.2rem 1.5rem;margin-bottom:2rem}
+  .toc h3{margin:0 0 .6rem;font-size:1rem}
+  .toc ol{padding-left:1.4rem}
+  .toc li{margin-bottom:.25rem}
+  .toc a{color:var(--accent-deep);text-decoration:none}
+  .toc a:hover{text-decoration:underline}
+  .diagram{background:#f9f6f0;border:1px dashed var(--line);border-radius:10px;padding:1.2rem;margin:.8rem 0 1.2rem;font-family:'Cascadia Code',monospace;font-size:.82rem;line-height:1.6;white-space:pre;overflow-x:auto}
+  .section-icon{margin-right:.4rem}
+  @media(max-width:640px){.doc{padding:1.2rem 1rem 2rem}h1{font-size:1.5rem}h2{font-size:1.2rem}pre{font-size:.78rem}}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<h1>📘 Documentation Technique — EduTrack CMS Pédagogique</h1>
+<p><strong>Version :</strong> 1.0 &nbsp;|&nbsp; <strong>Date :</strong> 7 avril 2026 &nbsp;|&nbsp; <strong>Auteur :</strong> Équipe EduTrack</p>
+
+<!-- ═══════════════════════ TABLE OF CONTENTS ═══════════════════════ -->
+<div class="toc">
+<h3>Table des matières</h3>
+<ol>
+  <li><a href="#s1">Introduction</a></li>
+  <li><a href="#s2">Vue d'ensemble du système</a></li>
+  <li><a href="#s3">Architecture détaillée</a></li>
+  <li><a href="#s4">API &amp; Interfaces</a></li>
+  <li><a href="#s5">Modélisation des données</a></li>
+  <li><a href="#s6">Configuration &amp; déploiement</a></li>
+  <li><a href="#s7">Tests</a></li>
+  <li><a href="#s8">Performance &amp; scalabilité</a></li>
+  <li><a href="#s9">Sécurité</a></li>
+  <li><a href="#s10">Maintenance &amp; monitoring</a></li>
+  <li><a href="#s11">Gestion des versions</a></li>
+  <li><a href="#s12">Pistes d'amélioration</a></li>
+  <li><a href="#s13">Annexes</a></li>
+</ol>
+</div>
+
+<!-- ═══════════════════════ 1. INTRODUCTION ═══════════════════════ -->
+<h2 id="s1"><span class="section-icon">📌</span> 1. Introduction</h2>
+
+<h3>1.1 Objectif du document</h3>
+<p>Ce document décrit l'architecture, le fonctionnement technique et les interfaces du projet <strong>EduTrack CMS</strong>. Il est destiné aux développeurs, architectes logiciels, testeurs QA et responsables DevOps impliqués dans le développement ou la maintenance du système.</p>
+
+<h3>1.2 Portée du projet</h3>
+<p>EduTrack CMS est un système de gestion de contenu pédagogique destiné à la publication d'articles éducatifs pour enfants. Le système est composé de <strong>deux applications Django indépendantes</strong> :</p>
+<ul>
+  <li><strong>Client (Client_blog_post)</strong> — Application publique de publication, lecture, commentaire et partage d'articles pédagogiques, avec un dashboard auteur intégrant des graphiques analytiques.</li>
+  <li><strong>Serveur (serveur / Digital Scholar)</strong> — Serveur d'analyse centralisé qui consomme les logs d'actions du client via une connexion SQLite read-only directe, et offre un tableau de bord analytique avancé.</li>
+</ul>
+<p><strong>Fonctionnalités principales :</strong></p>
+<ul>
+  <li>Création/modification/suppression d'articles pédagogiques (éditeur rich-text Quill)</li>
+  <li>Système de catégories (20 catégories éducatives) et de tags</li>
+  <li>Commentaires imbriqués (threaded) avec modération</li>
+  <li>Partage d'articles avec compteur de partages</li>
+  <li>Recherche plein texte pondérée (scoring multi-champs)</li>
+  <li>Suivi analytique complet : lectures, temps de lecture par section, OS, navigateur, appareil</li>
+  <li>Dashboard auteur avec graphiques Chart.js (barres, lignes, doughnuts)</li>
+  <li>Serveur d'analyse avec dashboard, explorateur, tendances</li>
+  <li>Système de logs d'actions (ActionLog) avec livraison vers le serveur</li>
+</ul>
+
+<h3>1.3 Définitions &amp; acronymes</h3>
+<table>
+  <tr><th>Terme</th><th>Définition</th></tr>
+  <tr><td>CMS</td><td>Content Management System — Système de gestion de contenu</td></tr>
+  <tr><td>ORM</td><td>Object-Relational Mapping — Couche d'abstraction base de données</td></tr>
+  <tr><td>CSRF</td><td>Cross-Site Request Forgery — Protection contre les requêtes forgées</td></tr>
+  <tr><td>XSS</td><td>Cross-Site Scripting — Injection de scripts malveillants</td></tr>
+  <tr><td>WSGI</td><td>Web Server Gateway Interface — Interface de communication serveur Python</td></tr>
+  <tr><td>CDN</td><td>Content Delivery Network — Réseau de distribution de contenu</td></tr>
+  <tr><td>ERD</td><td>Entity Relationship Diagram — Diagramme entité-relation</td></tr>
+  <tr><td>UA</td><td>User Agent — Identifiant navigateur/OS du client HTTP</td></tr>
+</table>
+
+<!-- ═══════════════════════ 2. VUE D'ENSEMBLE ═══════════════════════ -->
+<h2 id="s2"><span class="section-icon">🏗️</span> 2. Vue d'ensemble du système</h2>
+
+<h3>2.1 Description générale</h3>
+<p><strong>Contexte métier :</strong> Les enseignants et créateurs de contenu éducatif ont besoin d'une plateforme simple, inspirée de Substack, pour publier des articles structurés (introduction, objectifs, contenu, conclusion, questions de réflexion, ressources) et suivre l'engagement des lecteurs.</p>
+<p><strong>Problème résolu :</strong> EduTrack centralise la création, la diffusion et l'analyse de contenus pédagogiques en un seul outil, éliminant le besoin de combiner un CMS générique avec des outils d'analytics externes.</p>
+
+<h3>2.2 Architecture globale</h3>
+<p>Le système suit une architecture <strong>bi-applicative monolithique</strong> : deux applications Django autonomes communiquant via une base de données SQLite partagée (lecture seule côté serveur) et des webhooks HTTP (push de logs).</p>
+
+<div class="diagram">
+┌─────────────────────────────────────────────────────────────────┐
+│                        NAVIGATEUR (Client)                       │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────┐    │
+│  │  Accueil  │  │ Explorer │  │ Article  │  │  Dashboard   │    │
+│  │ home.html │  │ list.html│  │detail.html│  │dashboard.html│    │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └──────┬───────┘    │
+│       │              │              │               │            │
+│       │      Chart.js 4.4.4        │   Quill 1.3.7 │            │
+│       └──────────────┴──────────────┴───────────────┘            │
+│              HTML/CSS/JS (Vanilla) + analytics.js                │
+└──────────────────────────┬───────────────────────────────────────┘
+                           │ HTTP (GET/POST)
+┌──────────────────────────▼───────────────────────────────────────┐
+│              CLIENT APP — Django 6.0 (Client_blog_post)          │
+│  ┌─────────┐ ┌──────────┐ ┌──────────┐ ┌───────────────────┐    │
+│  │  Views   │ │  Models  │ │  Forms   │ │  ActionLog system │    │
+│  │(views.py)│ │(models.py│ │(forms.py)│ │ (_log_action)     │    │
+│  └────┬─────┘ └────┬─────┘ └──────────┘ └────────┬──────────┘   │
+│       │             │                              │              │
+│       │    ┌────────▼────────┐         ┌──────────▼──────────┐   │
+│       │    │   db.sqlite3    │◄────────│  HTTP POST webhook  │   │
+│       │    │  (Client DB)    │         │  → Serveur analytics │   │
+│       │    └────────┬────────┘         └─────────────────────┘   │
+└─────────────────────┼────────────────────────────────────────────┘
+                      │ SQLite read-only (file: URI mode=ro)
+┌─────────────────────▼────────────────────────────────────────────┐
+│           SERVEUR APP — Django 6.0 (digital_scholar)             │
+│  ┌──────────┐  ┌──────────┐  ┌───────────┐  ┌──────────────┐    │
+│  │Dashboard │  │Explorateur│ │ Tendances │  │ API (receive) │    │
+│  │          │  │           │ │           │  │  /api/analytics│    │
+│  └──────────┘  └──────────┘  └───────────┘  └──────────────┘    │
+│            db_utils.py (raw SQL → client db.sqlite3)             │
+│  ┌──────────────────────────────────────────────────────────┐    │
+│  │                   db.sqlite3 (Serveur DB)                 │    │
+│  └──────────────────────────────────────────────────────────┘    │
+└──────────────────────────────────────────────────────────────────┘
+</div>
+
+<h3>2.3 Technologies utilisées</h3>
+<table>
+  <tr><th>Domaine</th><th>Technologie</th><th>Version</th></tr>
+  <tr><td>Backend</td><td>Python + Django</td><td>Python 3.14 / Django 6.0.3</td></tr>
+  <tr><td>Base de données</td><td>SQLite</td><td>3.x (intégrée)</td></tr>
+  <tr><td>Frontend</td><td>HTML5, CSS3, JavaScript (Vanilla)</td><td>—</td></tr>
+  <tr><td>Éditeur Rich Text</td><td>Quill.js</td><td>1.3.7 (CDN)</td></tr>
+  <tr><td>Graphiques</td><td>Chart.js</td><td>4.4.4 (CDN)</td></tr>
+  <tr><td>Typographie</td><td>Google Fonts (Newsreader, Public Sans, Inter)</td><td>—</td></tr>
+  <tr><td>Sanitisation HTML</td><td>bleach (Python)</td><td>6.x</td></tr>
+  <tr><td>Serveur WSGI</td><td>Django dev server / Gunicorn (prod)</td><td>—</td></tr>
+</table>
+
+<!-- ═══════════════════════ 3. ARCHITECTURE DÉTAILLÉE ═══════════════════════ -->
+<h2 id="s3"><span class="section-icon">🧩</span> 3. Architecture détaillée</h2>
+
+<h3>3.1 Diagramme de composants</h3>
+<div class="diagram">
+Client_blog_post/
+├── blog/                         # App Django principale
+│   ├── models.py                 # 6 modèles : Tag, Article, ReaderComment,
+│   │                             #   ArticleAnalytics, AnalyticsEvent, ActionLog
+│   ├── views.py                  # 11 vues : home, signup, article_list,
+│   │                             #   article_detail, author_dashboard,
+│   │                             #   article_create, article_edit, article_delete,
+│   │                             #   track_analytics, track_share, logout_view
+│   ├── forms.py                  # 3 forms : ArticleForm, AuthorSignupForm,
+│   │                             #   ReaderCommentForm
+│   ├── urls.py                   # 12 routes
+│   ├── admin.py                  # Admin Django pour tous les modèles
+│   ├── templates/blog/           # Templates : base, home, article_list,
+│   │                             #   article_detail, article_form, dashboard,
+│   │                             #   article_delete, comment_node
+│   └── management/commands/      # seed_demo_data.py
+├── Client_blog_post/             # Config Django projet
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── static/
+│   ├── css/  (site.css, home.css, article_list.css, article_detail.css,
+│   │          article_form.css, dashboard.css, auth.css)
+│   └── js/   (analytics.js)
+├── templates/
+│   ├── 404.html                  # Page 404 personnalisée
+│   └── registration/ (login.html, signup.html)
+└── media/articles/images/        # Uploads d'illustrations
+
+serveur/
+├── analytics/                    # App Django analytics
+│   ├── models.py                 # 5 modèles : Teacher, Article, ArticleMetrics,
+│   │                             #   DailyReads, RawEvent
+│   ├── views.py                  # 7 vues : api_docs, dashboard, explorateur,
+│   │                             #   tendances, article_list, article_detail,
+│   │                             #   receive_analytics, receive_action_log
+│   ├── db_utils.py               # Raw SQL vers client DB (read-only)
+│   └── urls.py                   # 8 routes (incl. 2 API)
+├── digital_scholar/              # Config Django projet
+│   ├── settings.py               # Double DB (default + client read-only)
+│   └── urls.py
+├── templates/
+│   ├── base.html                 # Layout avec sidebar navigation
+│   └── analytics/ (dashboard, explorateur, tendances,
+│                    article_list, article_detail, api_docs)
+└── static/css/site.css
+</div>
+
+<h3>3.2 Description des modules</h3>
+
+<h3>Module Authentification</h3>
+<ul>
+  <li><strong>Inscription auteur</strong> : Formulaire personnalisé (<code>AuthorSignupForm</code>) avec validation email unique, champs prénom/nom obligatoires.</li>
+  <li><strong>Connexion/Déconnexion</strong> : Django auth intégré (<code>django.contrib.auth</code>), templates personnalisés, redirection vers le dashboard après login.</li>
+  <li><strong>Contrôle d'accès</strong> : Décorateur <code>@login_required</code> sur les vues auteur (dashboard, création, modification, suppression).</li>
+  <li><strong>Lecteurs anonymes</strong> : Pas de compte requis pour lire, commenter ou partager.</li>
+</ul>
+
+<h3>Module Gestion des articles</h3>
+<ul>
+  <li><strong>Création</strong> : Éditeur Substack-style avec Quill.js pour intro/contenu/conclusion. Seul le titre est requis.</li>
+  <li><strong>Catégorisation</strong> : 20 catégories éducatives prédéfinies + tags libres (many-to-many).</li>
+  <li><strong>Médias</strong> : Upload ou URL pour les illustrations. Sanitisation HTML via <code>bleach</code>.</li>
+  <li><strong>Workflow</strong> : Brouillon → Publié. <code>published_at</code> automatiquement défini à la première publication.</li>
+  <li><strong>Recherche</strong> : Scoring pondéré multi-champs (titre×12, tags×10, intro×8, contenu×6, etc.).</li>
+</ul>
+
+<h3>Module Commentaires</h3>
+<ul>
+  <li><strong>Commentaires threadés</strong> : Modèle auto-référencé (<code>parent</code> FK vers <code>self</code>).</li>
+  <li><strong>Formulaire inline</strong> : Nom requis, email optionnel, message (max 1000 caractères avec compteur).</li>
+  <li><strong>Réponses</strong> : Formulaires de réponse inline avec annulation.</li>
+  <li><strong>Modération</strong> : Champ <code>is_approved</code> (défaut <code>True</code>, filtré côté requête).</li>
+</ul>
+
+<h3>Module Analytique (Client)</h3>
+<ul>
+  <li><strong>Tracking de section</strong> : <code>analytics.js</code> envoie le temps passé par section (intro, objectifs, contenu, conclusion, ressources).</li>
+  <li><strong>ActionLog</strong> : Enregistre chaque action (view, comment, share, login, etc.) avec IP, user-agent, session.</li>
+  <li><strong>Livraison</strong> : Push HTTP vers le serveur d'analyse avec statut de livraison (pending/sent/failed).</li>
+  <li><strong>Dashboard auteur</strong> : Articles publiés/jour, commentaires/jour, visites/jour, OS/navigateur/appareil, résumé commentaires.</li>
+</ul>
+
+<h3>Module Partage</h3>
+<ul>
+  <li><strong>Modal de partage</strong> : Popup avec copie du lien dans le presse-papier.</li>
+  <li><strong>Compteur de partages</strong> : Chaque copie de lien crée un <code>ActionLog(action='article_share')</code> via endpoint AJAX dédié.</li>
+  <li><strong>Affichage</strong> : Badge compteur sur le bouton « Partager », pills dans les listes et la page d'accueil.</li>
+</ul>
+
+<h3>Module Analytique (Serveur — Digital Scholar)</h3>
+<ul>
+  <li><strong>Dashboard</strong> : Lectures mensuelles, articles top, enseignants les plus actifs.</li>
+  <li><strong>Explorateur</strong> : Filtrage par date, enseignant, catégorie, type d'appareil.</li>
+  <li><strong>Tendances</strong> : Analyse temporelle des lectures et de l'engagement.</li>
+  <li><strong>Accès DB client</strong> : Lecture directe via raw SQL (<code>db_utils.py</code>) en mode read-only.</li>
+</ul>
+
+<h3>3.3 Communication inter-services</h3>
+<table>
+  <tr><th>Canal</th><th>Direction</th><th>Protocole</th><th>Description</th></tr>
+  <tr><td>Push webhooks</td><td>Client → Serveur</td><td>HTTP POST (JSON)</td><td>Envoi des ActionLog et analytics events vers <code>/api/analytics/</code> et <code>/api/action-log/</code></td></tr>
+  <tr><td>SQLite read-only</td><td>Serveur → Client DB</td><td>File IO (sqlite3)</td><td><code>db_utils.py</code> lit la DB client via <code>file:...?mode=ro</code></td></tr>
+</table>
+
+<!-- ═══════════════════════ 4. API & INTERFACES ═══════════════════════ -->
+<h2 id="s4"><span class="section-icon">🔌</span> 4. API &amp; Interfaces</h2>
+
+<h3>4.1 Endpoints — Application Client</h3>
+<table>
+  <tr><th>Méthode</th><th>URL</th><th>Nom</th><th>Auth</th><th>Description</th></tr>
+  <tr><td><span class="badge badge-get">GET</span></td><td><code>/</code></td><td>home</td><td>Non</td><td>Page d'accueil avec articles vedettes</td></tr>
+  <tr><td><span class="badge badge-get">GET</span></td><td><code>/articles/</code></td><td>article_list</td><td>Non</td><td>Liste/recherche d'articles (filtres catégorie, tag, texte)</td></tr>
+  <tr><td><span class="badge badge-get">GET</span></td><td><code>/articles/&lt;slug&gt;/</code></td><td>article_detail</td><td>Non</td><td>Lecture d'un article + commentaires</td></tr>
+  <tr><td><span class="badge badge-post">POST</span></td><td><code>/articles/&lt;slug&gt;/</code></td><td>article_detail</td><td>Non</td><td>Création d'un commentaire</td></tr>
+  <tr><td><span class="badge badge-get">GET</span></td><td><code>/articles/new/</code></td><td>article_create</td><td>🔒 Auteur</td><td>Formulaire de création d'article</td></tr>
+  <tr><td><span class="badge badge-post">POST</span></td><td><code>/articles/new/</code></td><td>article_create</td><td>🔒 Auteur</td><td>Enregistrement d'un nouvel article</td></tr>
+  <tr><td><span class="badge badge-get">GET</span></td><td><code>/articles/&lt;slug&gt;/edit/</code></td><td>article_edit</td><td>🔒 Auteur</td><td>Formulaire de modification</td></tr>
+  <tr><td><span class="badge badge-post">POST</span></td><td><code>/articles/&lt;slug&gt;/edit/</code></td><td>article_edit</td><td>🔒 Auteur</td><td>Sauvegarde des modifications</td></tr>
+  <tr><td><span class="badge badge-post">POST</span></td><td><code>/articles/&lt;slug&gt;/delete/</code></td><td>article_delete</td><td>🔒 Auteur</td><td>Suppression d'un article</td></tr>
+  <tr><td><span class="badge badge-get">GET</span></td><td><code>/dashboard/</code></td><td>author_dashboard</td><td>🔒 Auteur</td><td>Dashboard auteur avec stats et graphiques</td></tr>
+  <tr><td><span class="badge badge-post">POST</span></td><td><code>/analytics/track/</code></td><td>track_analytics</td><td>Non (CSRF exempt)</td><td>Réception d'événements de lecture par section</td></tr>
+  <tr><td><span class="badge badge-post">POST</span></td><td><code>/analytics/share/</code></td><td>track_share</td><td>Non (CSRF exempt)</td><td>Enregistrement d'un partage d'article</td></tr>
+  <tr><td><span class="badge badge-get">GET</span></td><td><code>/signup/</code></td><td>signup</td><td>Non</td><td>Inscription auteur</td></tr>
+  <tr><td><span class="badge badge-get">GET</span></td><td><code>/accounts/logout/</code></td><td>logout</td><td>Non</td><td>Déconnexion</td></tr>
+</table>
+
+<h3>4.2 Endpoints — Serveur d'analyse (Digital Scholar)</h3>
+<table>
+  <tr><th>Méthode</th><th>URL</th><th>Nom</th><th>Auth</th><th>Description</th></tr>
+  <tr><td><span class="badge badge-get">GET</span></td><td><code>/</code></td><td>api_docs</td><td>Non</td><td>Documentation API publique</td></tr>
+  <tr><td><span class="badge badge-get">GET</span></td><td><code>/dashboard/</code></td><td>dashboard</td><td>🔒 Login</td><td>Tableau de bord principal</td></tr>
+  <tr><td><span class="badge badge-get">GET</span></td><td><code>/explorateur/</code></td><td>explorateur</td><td>🔒 Login</td><td>Explorateur de mesures avec filtres</td></tr>
+  <tr><td><span class="badge badge-get">GET</span></td><td><code>/tendances/</code></td><td>tendances</td><td>🔒 Login</td><td>Graphiques de tendances</td></tr>
+  <tr><td><span class="badge badge-get">GET</span></td><td><code>/articles/</code></td><td>article_list</td><td>🔒 Login</td><td>Liste des articles avec métriques</td></tr>
+  <tr><td><span class="badge badge-get">GET</span></td><td><code>/articles/&lt;pk&gt;/</code></td><td>article_detail</td><td>🔒 Login</td><td>Détail d'un article avec analytics</td></tr>
+  <tr><td><span class="badge badge-post">POST</span></td><td><code>/api/analytics/</code></td><td>api_analytics</td><td>Non (CSRF exempt)</td><td>Réception analytics JSON (webhook)</td></tr>
+  <tr><td><span class="badge badge-post">POST</span></td><td><code>/api/action-log/</code></td><td>api_action_log</td><td>Non (CSRF exempt)</td><td>Réception action-log JSON (webhook)</td></tr>
+</table>
+
+<h3>4.3 Format des requêtes/réponses</h3>
+<p><strong>POST /analytics/track/</strong> (Client — tracking de lecture) :</p>
+<pre>{
+  "article_id": 42,
+  "section": "introduction",
+  "duration_seconds": 35,
+  "session_id": "abc123"
+}</pre>
+<p>Réponse : <code>{"ok": true}</code></p>
+
+<p><strong>POST /analytics/share/</strong> (Client — tracking de partage) :</p>
+<pre>{
+  "article_id": 42
+}</pre>
+<p>Réponse : <code>{"ok": true, "share_count": 15}</code></p>
+
+<h3>4.4 Authentification &amp; sécurité</h3>
+<ul>
+  <li><strong>Session-based auth</strong> : Django sessions avec cookies HTTPONLY.</li>
+  <li><strong>CSRF</strong> : Activé globalement. Exceptions uniquement pour les endpoints d'API machine-to-machine (<code>@csrf_exempt</code>).</li>
+  <li><strong>Gestion des rôles</strong> : Deux profils — <strong>Auteur</strong> (CRUD articles + dashboard) et <strong>Lecteur anonyme</strong> (lecture + commentaire + partage).</li>
+</ul>
+
+<!-- ═══════════════════════ 5. MODÉLISATION DES DONNÉES ═══════════════════════ -->
+<h2 id="s5"><span class="section-icon">🗄️</span> 5. Modélisation des données</h2>
+
+<h3>5.1 Schéma ERD — Client</h3>
+<div class="diagram">
+┌─────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│    User      │     │      Tag         │     │  ArticleAnalytics│
+│ (auth_user)  │     │                  │     │                  │
+│─────────────│     │  id              │     │  id              │
+│ id           │     │  name            │     │  article (1:1)   │
+│ username     │     │  slug            │     │  total_reads     │
+│ email        │     └────────┬─────────┘     │  total_seconds   │
+│ first_name   │              │ M:N           │  intro_seconds   │
+│ last_name    │              │               │  objectives_sec  │
+│ password     │     ┌────────▼─────────┐     │  content_seconds │
+└──────┬───────┘     │    Article       │     │  conclusion_sec  │
+       │ 1:N         │                  │     │  resources_sec   │
+       │             │  id              │     └──────────────────┘
+       └────────────►│  author (FK→User)│
+                     │  title           │     ┌──────────────────┐
+                     │  slug (unique)   │     │  AnalyticsEvent  │
+                     │  category        │     │                  │
+                     │  illustration_*  │     │  id              │
+                     │  enable_analytics│◄────│  article (FK)    │
+                     │  intro           │     │  section         │
+                     │  objectives      │     │  duration_seconds│
+                     │  content         │     │  session_id      │
+                     │  conclusion      │     │  created_at      │
+                     │  reflection_q    │     └──────────────────┘
+                     │  resources       │
+                     │  status          │     ┌──────────────────┐
+                     │  published_at    │     │    ActionLog     │
+                     │  created_at      │     │                  │
+                     │  updated_at      │     │  id              │
+                     └────────┬─────────┘     │  action          │
+                              │ 1:N           │  actor_type      │
+                     ┌────────▼─────────┐     │  user (FK→User)  │
+                     │  ReaderComment   │     │  article (FK)    │
+                     │                  │     │  request_path    │
+                     │  id              │     │  ip_address      │
+                     │  article (FK)    │     │  user_agent      │
+                     │  parent (FK→self)│     │  session_id      │
+                     │  name            │     │  payload (JSON)  │
+                     │  email           │     │  delivery_status │
+                     │  message         │     │  created_at      │
+                     │  is_approved     │     └──────────────────┘
+                     │  created_at      │
+                     └──────────────────┘
+</div>
+
+<h3>5.2 Tables principales — Client</h3>
+<table>
+  <tr><th>Table</th><th>Description</th><th>Relations</th></tr>
+  <tr><td><code>blog_tag</code></td><td>Tags libres pour classification</td><td>M:N avec Article</td></tr>
+  <tr><td><code>blog_article</code></td><td>Articles pédagogiques (contenu principal)</td><td>FK → User (auteur), M:N → Tag</td></tr>
+  <tr><td><code>blog_readercomment</code></td><td>Commentaires des lecteurs (threadés)</td><td>FK → Article, FK → self (parent)</td></tr>
+  <tr><td><code>blog_articleanalytics</code></td><td>Métriques agrégées par article</td><td>OneToOne → Article</td></tr>
+  <tr><td><code>blog_analyticsevent</code></td><td>Événements bruts de lecture (par section)</td><td>FK → Article</td></tr>
+  <tr><td><code>blog_actionlog</code></td><td>Journal d'actions (vues, partages, logins, etc.)</td><td>FK → User (nullable), FK → Article (nullable)</td></tr>
+</table>
+
+<h3>5.3 Tables principales — Serveur</h3>
+<table>
+  <tr><th>Table</th><th>Description</th><th>Relations</th></tr>
+  <tr><td><code>analytics_teacher</code></td><td>Miroir des auteurs du client</td><td>—</td></tr>
+  <tr><td><code>analytics_article</code></td><td>Miroir des articles enrichi</td><td>FK → Teacher</td></tr>
+  <tr><td><code>analytics_articlemetrics</code></td><td>Métriques calculées (visibility, avg_time)</td><td>OneToOne → Article</td></tr>
+  <tr><td><code>analytics_dailyreads</code></td><td>Lectures quotidiennes par article</td><td>FK → Article, unique (article, date)</td></tr>
+  <tr><td><code>analytics_rawevent</code></td><td>Événements bruts reçus du client</td><td>FK → Teacher, FK → Article</td></tr>
+</table>
+
+<h3>5.4 Relations clés</h3>
+<ul>
+  <li><strong>One-to-Many</strong> : User → Article, Article → ReaderComment, Article → AnalyticsEvent, Article → ActionLog</li>
+  <li><strong>Self-referencing</strong> : ReaderComment → ReaderComment (commentaires parents/enfants)</li>
+  <li><strong>One-to-One</strong> : Article → ArticleAnalytics, Article → ArticleMetrics (serveur)</li>
+  <li><strong>Many-to-Many</strong> : Article ↔ Tag (via table intermédiaire automatique)</li>
+</ul>
+
+<!-- ═══════════════════════ 6. CONFIGURATION & DÉPLOIEMENT ═══════════════════════ -->
+<h2 id="s6"><span class="section-icon">⚙️</span> 6. Configuration &amp; déploiement</h2>
+
+<h3>6.1 Prérequis</h3>
+<table>
+  <tr><th>Composant</th><th>Version requise</th></tr>
+  <tr><td>Python</td><td>3.12+</td></tr>
+  <tr><td>Django</td><td>6.0.3</td></tr>
+  <tr><td>bleach</td><td>6.x</td></tr>
+  <tr><td>OS</td><td>Windows 10+, Linux, macOS</td></tr>
+  <tr><td>SQLite</td><td>3.x (inclus avec Python)</td></tr>
+</table>
+
+<h3>6.2 Installation</h3>
+<pre># Cloner le projet
+git clone &lt;repository_url&gt;
+cd "PROJET N°3"
+
+# Créer l'environnement virtuel
+python -m venv .venv
+
+# Activer (Windows PowerShell)
+.\.venv\Scripts\Activate.ps1
+
+# Installer les dépendances
+pip install django bleach
+
+# Appliquer les migrations — Client
+cd Client_blog_post
+python manage.py migrate
+
+# Créer un superutilisateur
+python manage.py createsuperuser
+
+# (Optionnel) Charger les données de démonstration
+python manage.py seed_demo_data
+
+# Lancer le serveur client
+python manage.py runserver 8000
+
+# Dans un autre terminal — Serveur analytics
+cd ../serveur
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver 8001</pre>
+
+<h3>6.3 Variables d'environnement</h3>
+<table>
+  <tr><th>Variable</th><th>Défaut</th><th>Description</th></tr>
+  <tr><td><code>SECRET_KEY</code></td><td>(django-insecure-...)</td><td>Clé secrète Django — <strong>à changer en production</strong></td></tr>
+  <tr><td><code>DEBUG</code></td><td><code>True</code></td><td>Mode debug — mettre à <code>False</code> en production</td></tr>
+  <tr><td><code>ANALYTICS_ENDPOINT</code></td><td><code>https://analytics.example.com/track</code></td><td>URL du serveur d'analyse pour le push d'événements</td></tr>
+  <tr><td><code>ACTION_LOG_ENDPOINT</code></td><td>= ANALYTICS_ENDPOINT</td><td>URL pour le push des logs d'action</td></tr>
+</table>
+
+<h3>6.4 Structure des fichiers de configuration</h3>
+<pre># Client_blog_post/Client_blog_post/settings.py — Points clés :
+INSTALLED_APPS = ['blog']
+DATABASES = {'default': {'ENGINE': 'sqlite3', 'NAME': BASE_DIR / 'db.sqlite3'}}
+STATIC_URL = 'static/'
+MEDIA_URL = 'media/'
+LOGIN_REDIRECT_URL = 'blog:author_dashboard'
+
+# serveur/digital_scholar/settings.py — Points clés :
+INSTALLED_APPS = ['analytics']
+DATABASES = {
+    'default': {'ENGINE': 'sqlite3', 'NAME': BASE_DIR / 'db.sqlite3'},
+    'client':  {'ENGINE': 'sqlite3', 'NAME': '../Client_blog_post/db.sqlite3'}  # read-only
+}</pre>
+
+<h3>6.5 Déploiement</h3>
+<ul>
+  <li><strong>Développement</strong> : <code>python manage.py runserver</code> (client:8000, serveur:8001).</li>
+  <li><strong>Production</strong> : Gunicorn + Nginx recommandé. Collecte statiques via <code>python manage.py collectstatic</code>.</li>
+  <li><strong>CI/CD</strong> : Pipeline recommandé — lint (flake8/ruff) → tests → migrations check → deploy.</li>
+</ul>
+
+<!-- ═══════════════════════ 7. TESTS ═══════════════════════ -->
+<h2 id="s7"><span class="section-icon">🧪</span> 7. Tests</h2>
+
+<h3>7.1 Types de tests</h3>
+<table>
+  <tr><th>Type</th><th>Outil</th><th>Couverture</th></tr>
+  <tr><td>Unitaires</td><td><code>django.test.TestCase</code></td><td>Modèles, forms, utilitaires (sanitize_rich_html, _parse_ua, _query_terms)</td></tr>
+  <tr><td>Intégration</td><td><code>django.test.Client</code></td><td>Views HTTP (GET/POST), redirections, permissions</td></tr>
+  <tr><td>End-to-End</td><td>Selenium / Playwright (recommandé)</td><td>Flux complet : inscription → publication → partage → commentaire</td></tr>
+</table>
+
+<h3>7.2 Exécution</h3>
+<pre># Lancer tous les tests
+python manage.py test
+
+# Avec couverture
+pip install coverage
+coverage run manage.py test
+coverage report --show-missing</pre>
+
+<h3>7.3 Objectifs de couverture</h3>
+<ul>
+  <li>Modèles &amp; forms : <strong>90%+</strong></li>
+  <li>Views : <strong>80%+</strong></li>
+  <li>Couverture globale cible : <strong>85%</strong></li>
+</ul>
+
+<!-- ═══════════════════════ 8. PERFORMANCE ═══════════════════════ -->
+<h2 id="s8"><span class="section-icon">🚀</span> 8. Performance &amp; scalabilité</h2>
+
+<h3>Optimisation des requêtes</h3>
+<ul>
+  <li><code>select_related('author')</code> et <code>prefetch_related('tags')</code> sur toutes les listes d'articles pour éviter les requêtes N+1.</li>
+  <li>Annotations en base (<code>Count</code>, <code>annotate</code>) pour view_count, comment_count, share_count plutôt que calcul Python.</li>
+  <li>Recherche par scoring SQL (<code>Case/When</code>) pour éviter des recherches en mémoire.</li>
+  <li><code>db_index=True</code> sur <code>category</code> pour filtrage rapide.</li>
+</ul>
+
+<h3>Limites de taille</h3>
+<ul>
+  <li><code>DATA_UPLOAD_MAX_MEMORY_SIZE</code> : 20 MB (corps de requête)</li>
+  <li><code>FILE_UPLOAD_MAX_MEMORY_SIZE</code> : 10 MB (fichiers uploadés)</li>
+</ul>
+
+<h3>Scalabilité</h3>
+<ul>
+  <li><strong>Actuel</strong> : SQLite mono-fichier, adapté pour un déploiement mono-serveur (jusqu'à ~100 utilisateurs simultanés).</li>
+  <li><strong>Évolution recommandée</strong> : Migration vers PostgreSQL pour la concurrence d'écriture, ajout de Redis pour le cache de sessions et les compteurs temps réel.</li>
+  <li><strong>CDN</strong> : Chart.js et Quill sont déjà chargés via CDN, réduisant la charge statique serveur.</li>
+</ul>
+
+<!-- ═══════════════════════ 9. SÉCURITÉ ═══════════════════════ -->
+<h2 id="s9"><span class="section-icon">🔐</span> 9. Sécurité</h2>
+
+<h3>Protection OWASP Top 10</h3>
+<table>
+  <tr><th>Risque</th><th>Protection</th></tr>
+  <tr><td><strong>A03 — Injection (XSS)</strong></td><td>Sanitisation HTML via <code>bleach</code> (tags/attributs whitelist) pour tout contenu rich-text. Auto-escaping Django dans les templates.</td></tr>
+  <tr><td><strong>A05 — CSRF</strong></td><td>Middleware CSRF activé globalement. Token <code>{% csrf_token %}</code> dans tous les formulaires POST. Seuls les endpoints API sont exemptés.</td></tr>
+  <tr><td><strong>A07 — Auth faible</strong></td><td>4 validateurs de mot de passe Django (similarité, longueur min, mots communs, numérique pur). Hashing bcrypt/PBKDF2.</td></tr>
+  <tr><td><strong>A01 — Contrôle d'accès</strong></td><td><code>@login_required</code> sur les vues auteur. Vérification <code>author=request.user</code> sur edit/delete.</td></tr>
+  <tr><td><strong>A09 — Logging</strong></td><td>ActionLog enregistre chaque action avec IP, user-agent, timestamp. Traçabilité complète.</td></tr>
+  <tr><td><strong>Clickjacking</strong></td><td><code>XFrameOptionsMiddleware</code> activé.</td></tr>
+  <tr><td><strong>Upload malveillant</strong></td><td>Limite de taille fichier (10 MB). Stockage dans <code>media/</code> avec noms générés par Django.</td></tr>
+</table>
+
+<h3>Points d'attention</h3>
+<ul>
+  <li><code>SECRET_KEY</code> hardcodée en dev — <strong>DOIT</strong> être remplacée par une variable d'environnement en production.</li>
+  <li><code>DEBUG = True</code> en dev — <strong>DOIT</strong> être <code>False</code> en production.</li>
+  <li><code>ALLOWED_HOSTS = []</code> — <strong>DOIT</strong> être configuré en production.</li>
+  <li>Les endpoints <code>@csrf_exempt</code> (<code>track_analytics</code>, <code>track_share</code>) acceptent des requêtes non authentifiées — rate limiting recommandé en production.</li>
+</ul>
+
+<!-- ═══════════════════════ 10. MAINTENANCE ═══════════════════════ -->
+<h2 id="s10"><span class="section-icon">🛠️</span> 10. Maintenance &amp; monitoring</h2>
+
+<h3>Logs applicatifs</h3>
+<ul>
+  <li><strong>ActionLog</strong> : Table centralisée de tous les événements utilisateur avec statut de livraison, tentatives, erreurs.</li>
+  <li><strong>Django logging</strong> : Configuration standard via <code>settings.LOGGING</code> (recommandé en production).</li>
+  <li><strong>Livraison</strong> : Chaque log a un <code>delivery_status</code> (pending/sent/failed) + <code>last_delivery_error</code> pour diagnostic.</li>
+</ul>
+
+<h3>Monitoring recommandé</h3>
+<ul>
+  <li><strong>Métriques</strong> : Prometheus + Django-prometheus pour métriques HTTP (latence, taux d'erreur).</li>
+  <li><strong>Dashboards</strong> : Grafana pour visualiser les métriques serveur.</li>
+  <li><strong>Alertes</strong> : Alerte sur taux d'erreur > 5%, temps de réponse > 2s, espace disque SQLite.</li>
+  <li><strong>Backup DB</strong> : Cron quotidien de copie des fichiers <code>db.sqlite3</code>.</li>
+</ul>
+
+<h3>Administration</h3>
+<ul>
+  <li>Interface admin Django accessible sur <code>/admin/</code> pour les deux applications.</li>
+  <li>Modèles enregistrés : Tag, Article, ReaderComment, ArticleAnalytics, AnalyticsEvent, ActionLog.</li>
+  <li>Commande de seed : <code>python manage.py seed_demo_data</code> pour données de test.</li>
+</ul>
+
+<!-- ═══════════════════════ 11. GESTION DES VERSIONS ═══════════════════════ -->
+<h2 id="s11"><span class="section-icon">📦</span> 11. Gestion des versions</h2>
+
+<h3>Versioning</h3>
+<p>Semantic Versioning (SemVer) : <code>MAJOR.MINOR.PATCH</code></p>
+<ul>
+  <li><strong>MAJOR</strong> : Changements breaking (restructuration DB, suppression d'endpoints)</li>
+  <li><strong>MINOR</strong> : Nouvelles fonctionnalités compatibles (nouveau module, nouveau champ)</li>
+  <li><strong>PATCH</strong> : Corrections de bugs, styles, optimisations</li>
+</ul>
+
+<h3>Changelog — v1.0.0 (7 avril 2026)</h3>
+<ul>
+  <li>Publication initiale du CMS pédagogique</li>
+  <li>20 catégories éducatives + tags libres</li>
+  <li>Éditeur Substack-style (Quill.js) avec titre seul requis</li>
+  <li>Commentaires threadés avec modération</li>
+  <li>Système de partage avec compteur</li>
+  <li>Recherche pondérée multi-champs</li>
+  <li>Dashboard auteur avec 6 graphiques Chart.js</li>
+  <li>Serveur d'analyse Digital Scholar</li>
+  <li>Page 404 personnalisée</li>
+  <li>Design Substack-style responsive</li>
+</ul>
+
+<h3>Migrations de base de données</h3>
+<pre># Client : 5 migrations
+0001_initial.py              # Modèles de base : Article, ReaderComment, etc.
+0002_actionlog.py            # Ajout du système ActionLog
+0003_media_and_analytics.py  # Champs média et toggle analytics
+0004_add_category.py         # Ajout catégorie aux articles
+0005_improve_reader_comment.py # Améliorations commentaires (parent, etc.)
+
+# Serveur : 1 migration
+0001_initial.py              # Teacher, Article, ArticleMetrics, DailyReads, RawEvent</pre>
+
+<!-- ═══════════════════════ 12. PISTES D'AMÉLIORATION ═══════════════════════ -->
+<h2 id="s12"><span class="section-icon">💡</span> 12. Pistes d'amélioration</h2>
+
+<h3>12.1 Fonctionnalités prioritaires (court terme)</h3>
+<table>
+  <tr><th>Amélioration</th><th>Description</th><th>Impact</th></tr>
+  <tr><td><strong>Pagination</strong></td><td>Ajouter la pagination sur les pages d'accueil et Explorer (actuellement toutes les entrées sont chargées en une seule requête).</td><td>🔴 Élevé — indispensable dès >50 articles</td></tr>
+  <tr><td><strong>Modération des commentaires</strong></td><td>Interface auteur pour approuver/rejeter les commentaires. Le champ <code>is_approved</code> existe déjà mais n'a pas d'UI de gestion.</td><td>🔴 Élevé — contrôle du contenu publié</td></tr>
+  <tr><td><strong>Profil auteur public</strong></td><td>Page dédiée par auteur (<code>/auteurs/&lt;username&gt;/</code>) avec bio, avatar, liste de ses articles publiés.</td><td>🟡 Moyen — renforce l'identité éditoriale</td></tr>
+  <tr><td><strong>Brouillons avec auto-save</strong></td><td>Sauvegarde automatique périodique (localStorage + API) pour éviter la perte de contenu en cours de rédaction.</td><td>🟡 Moyen — UX rédacteur</td></tr>
+  <tr><td><strong>Notifications auteur</strong></td><td>Alerter l'auteur (badge ou email) quand un nouveau commentaire est posté sur un de ses articles.</td><td>🟡 Moyen — engagement auteur</td></tr>
+</table>
+
+<h3>12.2 Améliorations UX / UI</h3>
+<ul>
+  <li><strong>Mode sombre :</strong> Ajouter un toggle dark mode avec persistance dans localStorage. Les variables CSS (<code>--bg</code>, <code>--paper</code>, <code>--ink</code>) facilitent l'implémentation.</li>
+  <li><strong>Prévisualisation en temps réel :</strong> Split-view dans l'éditeur pour voir le rendu final pendant la rédaction.</li>
+  <li><strong>Drag &amp; drop pour les images :</strong> Permettre le glisser-déposer d'images directement dans l'éditeur Quill au lieu du prompt URL.</li>
+  <li><strong>Favoris / Signets :</strong> Permettre aux lecteurs de sauvegarder des articles en favoris (localStorage pour les anonymes, table DB pour les auteurs).</li>
+  <li><strong>Barre de progression de lecture :</strong> Indicateur visuel du pourcentage de l'article lu (barre en haut de page).</li>
+  <li><strong>Temps de lecture estimé :</strong> Afficher « ~5 min de lecture » basé sur le nombre de mots (200 mots/min).</li>
+  <li><strong>Table des matières flottante :</strong> Navigation latérale auto-générée à partir des sections (intro, objectifs, contenu, etc.).</li>
+</ul>
+
+<h3>12.3 Architecture &amp; technique</h3>
+<ul>
+  <li><strong>Migration PostgreSQL :</strong> Remplacer SQLite par PostgreSQL pour supporter la concurrence d'écriture, les recherches full-text natives (<code>SearchVector</code>, <code>SearchRank</code>) et les index GIN/GiST.</li>
+  <li><strong>Cache Redis :</strong> Mise en cache des pages d'accueil et des compteurs (vues, partages) avec invalidation ciblée. Réduirait significativement la charge DB.</li>
+  <li><strong>API REST complète :</strong> Exposer les endpoints via Django REST Framework pour permettre des clients mobiles ou SPA (React/Vue).</li>
+  <li><strong>Tâches asynchrones (Celery) :</strong> Déporter l'envoi des webhooks analytics et les emails de notification dans des workers asynchrones.</li>
+  <li><strong>Recherche Elasticsearch :</strong> Pour une recherche full-text avancée avec suggestions, auto-complétion, surbrillance des résultats et filtres à facettes.</li>
+  <li><strong>Stockage cloud (S3/MinIO) :</strong> Remplacer le stockage local <code>media/</code> par un bucket S3 pour la scalabilité et la résilience des uploads.</li>
+  <li><strong>Conteneurisation Docker :</strong> Dockerfile + docker-compose pour standardiser l'environnement de développement et simplifier le déploiement.</li>
+</ul>
+
+<h3>12.4 Sécurité &amp; qualité</h3>
+<ul>
+  <li><strong>Rate limiting :</strong> Limiter les endpoints publics (<code>track_analytics</code>, <code>track_share</code>, commentaires) avec <code>django-ratelimit</code> pour prévenir les abus.</li>
+  <li><strong>CAPTCHA :</strong> Ajouter un CAPTCHA (hCaptcha ou Turnstile) sur les formulaires de commentaire et d'inscription pour bloquer le spam.</li>
+  <li><strong>CSP (Content Security Policy) :</strong> Ajouter les en-têtes CSP pour restreindre les sources de scripts/styles et atténuer les risques XSS résiduels.</li>
+  <li><strong>Audit de sécurité automatisé :</strong> Intégrer <code>pip-audit</code> et <code>bandit</code> dans le pipeline CI pour détecter les dépendances vulnérables et les anti-patterns.</li>
+  <li><strong>Tests automatisés :</strong> Écrire une suite complète de tests (unitaires + intégration) pour atteindre la couverture cible de 85%.</li>
+  <li><strong>HTTPS obligatoire :</strong> Forcer HTTPS en production avec <code>SECURE_SSL_REDIRECT</code>, <code>SECURE_HSTS_SECONDS</code> et cookies sécurisés.</li>
+</ul>
+
+<h3>12.5 Fonctionnalités avancées (long terme)</h3>
+<ul>
+  <li><strong>Système de rôles multi-niveaux :</strong> Éditeur, Relecteur, Auteur, Admin — avec workflow de validation (soumission → relecture → publication).</li>
+  <li><strong>Versioning des articles :</strong> Historique des modifications avec diff visuel et possibilité de revenir à une version antérieure.</li>
+  <li><strong>Contenu multilingue :</strong> Support i18n pour publier des articles en plusieurs langues avec <code>django-modeltranslation</code>.</li>
+  <li><strong>Système de newsletter :</strong> Permettre aux lecteurs de s'abonner par email pour recevoir les nouveaux articles.</li>
+  <li><strong>Gamification :</strong> Badges et niveaux pour les auteurs (ex: 10 articles publiés, 100 commentaires reçus) et les lecteurs (commentaires, partages).</li>
+  <li><strong>Export PDF :</strong> Générer un PDF formaté de l'article pour impression ou partage hors-ligne (via <code>weasyprint</code> ou <code>xhtml2pdf</code>).</li>
+  <li><strong>Intégration LMS :</strong> Connecter EduTrack à des plateformes LMS (Moodle, Canvas) via LTI pour intégrer les articles dans des cours.</li>
+</ul>
+
+<!-- ═══════════════════════ 13. ANNEXES ═══════════════════════ -->
+<h2 id="s13"><span class="section-icon">📑</span> 13. Annexes</h2>
+
+<h3>A. Liste complète des catégories d'articles</h3>
+<table>
+  <tr><th>#</th><th>Valeur</th><th>Libellé</th></tr>
+  <tr><td>1</td><td><code>histoires_contes</code></td><td>Histoires courtes et contes</td></tr>
+  <tr><td>2</td><td><code>defis_reflexion</code></td><td>Défis de réflexion</td></tr>
+  <tr><td>3</td><td><code>decouverte_monde</code></td><td>Découverte du monde</td></tr>
+  <tr><td>4</td><td><code>sciences_amusantes</code></td><td>Sciences amusantes</td></tr>
+  <tr><td>5</td><td><code>maths_ludiques</code></td><td>Mathématiques ludiques</td></tr>
+  <tr><td>6</td><td><code>apprentissage_mots</code></td><td>Apprentissage des mots</td></tr>
+  <tr><td>7</td><td><code>activites_creatives</code></td><td>Activités créatives</td></tr>
+  <tr><td>8</td><td><code>vie_quotidienne</code></td><td>Histoires de la vie quotidienne</td></tr>
+  <tr><td>9</td><td><code>valeurs_comportements</code></td><td>Valeurs et comportements</td></tr>
+  <tr><td>10</td><td><code>animaux_nature</code></td><td>Animaux et nature</td></tr>
+  <tr><td>11</td><td><code>histoire_simplifiee</code></td><td>Histoire simplifiée</td></tr>
+  <tr><td>12</td><td><code>initiation_numerique</code></td><td>Initiation au numérique</td></tr>
+  <tr><td>13</td><td><code>jeux_role_imagination</code></td><td>Jeux de rôle et imagination</td></tr>
+  <tr><td>14</td><td><code>jeux_educatifs</code></td><td>Jeux éducatifs interactifs</td></tr>
+  <tr><td>15</td><td><code>comptines_chansons</code></td><td>Comptines et chansons</td></tr>
+  <tr><td>16</td><td><code>metiers_reves</code></td><td>Métiers et rêves</td></tr>
+  <tr><td>17</td><td><code>ecologie_environnement</code></td><td>Écologie et environnement</td></tr>
+  <tr><td>18</td><td><code>emotions_bienetre</code></td><td>Émotions et bien-être</td></tr>
+  <tr><td>19</td><td><code>langues_communication</code></td><td>Langues et communication</td></tr>
+  <tr><td>20</td><td><code>histoires_interactives</code></td><td>Histoires interactives</td></tr>
+</table>
+
+<h3>B. Liste des actions ActionLog</h3>
+<table>
+  <tr><th>Action</th><th>Déclencheur</th><th>Payload typique</th></tr>
+  <tr><td><code>home_view</code></td><td>Accès page d'accueil</td><td><code>{"featured_count": 6}</code></td></tr>
+  <tr><td><code>article_view</code></td><td>Lecture d'un article</td><td><code>{"actor_type": "reader"}</code></td></tr>
+  <tr><td><code>article_search</code></td><td>Recherche d'articles</td><td><code>{"query": "...", "result_count": N}</code></td></tr>
+  <tr><td><code>article_share</code></td><td>Copie du lien de partage</td><td><code>{"actor_type": "reader"}</code></td></tr>
+  <tr><td><code>article_created</code></td><td>Publication d'un article</td><td><code>{"status": "published", "title": "..."}</code></td></tr>
+  <tr><td><code>article_updated</code></td><td>Modification d'un article</td><td><code>{"status": "...", "title": "..."}</code></td></tr>
+  <tr><td><code>article_deleted</code></td><td>Suppression d'un article</td><td><code>{"title": "...", "slug": "..."}</code></td></tr>
+  <tr><td><code>reader_comment_created</code></td><td>Nouveau commentaire</td><td><code>{"comment_id": N, "name": "..."}</code></td></tr>
+  <tr><td><code>author_signup</code></td><td>Inscription auteur</td><td><code>{"username": "..."}</code></td></tr>
+  <tr><td><code>author_dashboard_view</code></td><td>Accès dashboard</td><td><code>{"article_count": N, "total_reads": N}</code></td></tr>
+  <tr><td><code>author_logout</code></td><td>Déconnexion</td><td><code>{}</code></td></tr>
+  <tr><td><code>analytics_tracked</code></td><td>Événement de lecture par section</td><td><code>{"section": "...", "duration_seconds": N}</code></td></tr>
+</table>
+
+<h3>C. Fichiers CSS du projet</h3>
+<table>
+  <tr><th>Fichier</th><th>Portée</th><th>Description</th></tr>
+  <tr><td><code>site.css</code></td><td>Global</td><td>Variables CSS, reset, navigation, composants communs (boutons, inputs, cards)</td></tr>
+  <tr><td><code>home.css</code></td><td>Accueil</td><td>Hero section, article vedette, grille de cards, barre de recherche</td></tr>
+  <tr><td><code>article_list.css</code></td><td>Explorer</td><td>Feed Substack, barre de recherche, filtres catégorie, stats pills</td></tr>
+  <tr><td><code>article_detail.css</code></td><td>Lecture</td><td>Mise en page lecteur, commentaires threadés, modal de partage, badge compteur</td></tr>
+  <tr><td><code>article_form.css</code></td><td>Éditeur</td><td>Éditeur Substack-style, topbar sticky, quill editors, panel détails dépliable</td></tr>
+  <tr><td><code>dashboard.css</code></td><td>Dashboard</td><td>Grille stats, graphiques Chart.js, résumé commentaires</td></tr>
+  <tr><td><code>auth.css</code></td><td>Auth</td><td>Formulaires login/signup</td></tr>
+</table>
+
+<h3>D. Références</h3>
+<ul>
+  <li><a href="https://docs.djangoproject.com/en/6.0/" target="_blank" rel="noopener">Documentation Django 6.0</a></li>
+  <li><a href="https://quilljs.com/docs/" target="_blank" rel="noopener">Documentation Quill.js</a></li>
+  <li><a href="https://www.chartjs.org/docs/latest/" target="_blank" rel="noopener">Documentation Chart.js</a></li>
+  <li><a href="https://bleach.readthedocs.io/" target="_blank" rel="noopener">Documentation bleach</a></li>
+  <li><a href="https://owasp.org/www-project-top-ten/" target="_blank" rel="noopener">OWASP Top 10</a></li>
+</ul>
+
+</div>
+</body>
+</html>

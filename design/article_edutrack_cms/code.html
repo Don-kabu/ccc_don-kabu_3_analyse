@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>L’impact de l’Intelligence Artificielle sur l’Éducation Moderne | EduTrack</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&amp;family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&amp;family=JetBrains+Mono&amp;family=Newsreader:opsz,wght@6..72,400;6..72,700&amp;family=Public+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-tint": "#0053db",
+              "inverse-surface": "#33302d",
+              "on-tertiary-fixed": "#360f00",
+              "surface-container-highest": "#e9e1dd",
+              "surface-variant": "#e9e1dd",
+              "surface-container-low": "#faf2ee",
+              "on-background": "#1e1b19",
+              "primary-container": "#2563eb",
+              "outline": "#737686",
+              "surface-container": "#f4ece8",
+              "primary-fixed-dim": "#b4c5ff",
+              "tertiary-fixed": "#ffdbcd",
+              "on-primary-fixed-variant": "#003ea8",
+              "on-primary": "#ffffff",
+              "error-container": "#ffdad6",
+              "primary": "#004ac6",
+              "on-tertiary-fixed-variant": "#7d2d00",
+              "surface": "#fff8f5",
+              "on-surface": "#1e1b19",
+              "on-primary-container": "#eeefff",
+              "secondary": "#645d58",
+              "secondary-fixed": "#eae1da",
+              "on-tertiary-container": "#ffede6",
+              "surface-container-lowest": "#ffffff",
+              "on-primary-fixed": "#00174b",
+              "inverse-on-surface": "#f7efeb",
+              "on-secondary-container": "#6a635e",
+              "error": "#ba1a1a",
+              "on-secondary": "#ffffff",
+              "surface-dim": "#e0d8d5",
+              "primary-fixed": "#dbe1ff",
+              "tertiary": "#943700",
+              "background": "#fff8f5",
+              "tertiary-container": "#bc4800",
+              "on-secondary-fixed-variant": "#4b4641",
+              "on-tertiary": "#ffffff",
+              "outline-variant": "#c3c6d7",
+              "inverse-primary": "#b4c5ff",
+              "tertiary-fixed-dim": "#ffb596",
+              "on-secondary-fixed": "#1f1b17",
+              "on-surface-variant": "#434655",
+              "secondary-container": "#eae1da",
+              "on-error-container": "#93000a",
+              "on-error": "#ffffff",
+              "surface-bright": "#fff8f5",
+              "secondary-fixed-dim": "#cec5bf",
+              "surface-container-high": "#eee7e3"
+            },
+            fontFamily: {
+              "serif": ["DM Serif Display", "serif"],
+              "sans": ["DM Sans", "sans-serif"],
+              "mono": ["JetBrains Mono", "monospace"],
+              "headline": ["Newsreader", "serif"],
+              "body": ["Public Sans", "sans-serif"],
+              "label": ["Public Sans", "sans-serif"]
+            },
+            borderRadius: {
+              "DEFAULT": "0.25rem",
+              "lg": "0.5rem",
+              "xl": "1.5rem",
+              "full": "9999px"
+            },
+          },
+        },
+      }
+    </script>
+<style>
+        body { background-color: #FAFAF9; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-nav { backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        .academic-reading { max-width: 720px; margin: 0 auto; }
+        .ghost-border { outline: 1px solid rgba(195, 198, 215, 0.15); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-surface antialiased">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 right-0 h-[60px] bg-white/80 dark:bg-stone-950/80 backdrop-blur-xl border-b border-stone-200/15 dark:border-stone-800/15 shadow-[0_2px_10px_rgba(28,25,23,0.05)] z-50">
+<div class="max-w-[720px] mx-auto px-8 flex justify-between items-center w-full h-full">
+<div class="flex items-center gap-2 cursor-pointer active:opacity-70">
+<span class="material-symbols-outlined text-blue-600 dark:text-blue-400" data-icon="menu_book">menu_book</span>
+<span class="text-xl font-serif tracking-tight text-stone-900 dark:text-stone-50">EduTrack</span>
+</div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-stone-500 dark:text-stone-400 font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300" href="#">Home</a>
+<a class="text-blue-600 dark:text-blue-400 font-bold hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300" href="#">Articles</a>
+</nav>
+<button class="text-blue-600 dark:text-blue-400 font-medium cursor-pointer active:opacity-70">Admin</button>
+</div>
+</header>
+<main class="pt-[120px] pb-24 px-8 academic-reading">
+<!-- Editorial Hero -->
+<article class="space-y-12">
+<header class="space-y-8">
+<div class="space-y-4">
+<p class="font-sans text-sm font-medium tracking-widest uppercase text-primary/60">Éducation &amp; Technologie</p>
+<h1 class="font-serif text-4xl md:text-5xl lg:text-6xl text-on-surface leading-[1.1] tracking-tight">
+                        L’impact de l’Intelligence Artificielle sur l’Éducation Moderne
+                    </h1>
+</div>
+<div class="flex items-center gap-4 text-sm font-sans text-stone-500 border-l-2 border-primary-container pl-6 py-1">
+<span class="font-medium">12 Mars 2024</span>
+<span class="text-stone-300">•</span>
+<span>Par <span class="text-on-surface font-semibold">Dr. Jean Dupont</span></span>
+</div>
+</header>
+<!-- Introduction -->
+<section class="mt-16">
+<p class="font-sans text-lg md:text-xl font-bold text-on-surface leading-relaxed">
+                    L'intégration de l'intelligence artificielle dans le cadre scolaire ne représente pas seulement une avancée technologique, mais une révolution pédagogique fondamentale qui redéfinit la relation entre l'apprenant et le savoir.
+                </p>
+</section>
+<!-- Body Content -->
+<section class="space-y-8 font-sans text-[18px] leading-[1.8] text-on-surface-variant">
+<p>
+                    Depuis l'avènement des modèles de langage de grande taille, le paysage éducatif traverse une zone de turbulence créative. L'IA n'est plus un simple outil de calcul en arrière-plan, mais un partenaire interactif capable de personnaliser le parcours d'apprentissage de chaque étudiant en temps réel. Cette personnalisation extrême permet de combler les lacunes spécifiques sans ralentir le reste du groupe.
+                </p>
+<div class="py-10">
+<figure class="space-y-4">
+<div class="relative overflow-hidden rounded-xl aspect-[16/9] shadow-subtle">
+<img alt="Visualisation de l'apprentissage automatique" class="object-cover w-full h-full" data-alt="Abstract neural network visualization with flowing blue data points and glowing connections on a dark background representing artificial intelligence" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDX4r3qusrOJ9p_jqJEq5a-qQdNPJK5eo8QiLuxILa_MuicHUB1mWpASeYiD_NZQRqxOG6eEwgpv5QwCzM22uIHBcn4OlTJyPrnasYLcj06j_EoL4mqPqi1UpiVfs-t0F0920F0PCIaz13GIibq3rBETwTqp9Udz1qWGFV9vmAn49q0Cu9w5Vj5YVqAb4dI9WoCtfLJ-J2ogpE886CapXmF7wJ4YHH8nqauO9uYMHpvPGeoFlRjG2w1ORkwDbpacaJKwSt5Pt_Jf8E"/>
+</div>
+<figcaption class="text-sm font-sans italic text-stone-500 text-center">
+                            Figure 1: Visualisation de l’apprentissage automatique
+                        </figcaption>
+</figure>
+</div>
+<h2 class="font-sans font-bold text-2xl text-on-surface pt-4">L'Algorithme comme Tuteur</h2>
+<p>
+                    La capacité des systèmes à analyser les erreurs récurrentes d'un élève permet de proposer des exercices de remédiation ciblés. Contrairement à une approche traditionnelle "taille unique", l'IA s'adapte à la vitesse de traitement de l'information de l'individu, réduisant ainsi l'anxiété liée à la performance.
+                </p>
+<!-- Code Block Section -->
+<div class="my-12">
+<div class="bg-[#1C1917] rounded-xl overflow-hidden shadow-lg ghost-border">
+<div class="flex justify-between items-center px-6 py-3 bg-[#2A2724] border-b border-white/5">
+<div class="flex gap-1.5">
+<div class="w-3 h-3 rounded-full bg-red-500/20"></div>
+<div class="w-3 h-3 rounded-full bg-amber-500/20"></div>
+<div class="w-3 h-3 rounded-full bg-emerald-500/20"></div>
+</div>
+<span class="font-mono text-[12px] text-stone-400 uppercase tracking-wider">script.py</span>
+</div>
+<div class="p-6 font-mono text-[14px] leading-relaxed text-[#FAFAF9] overflow-x-auto">
+<pre><code><span class="text-blue-400">import</span> torch
+<span class="text-blue-400">from</span> transformers <span class="text-blue-400">import</span> GPT2LMHeadModel
+
+<span class="text-stone-500"># Initialisation du modèle pédagogique</span>
+model = GPT2LMHeadModel.from_pretrained(<span class="text-emerald-400">"edutrack-core-v1"</span>)
+
+<span class="text-blue-400">def</span> <span class="text-amber-300">analyze_student_progress</span>(data):
+    <span class="text-stone-500">"""Analyse les vecteurs d'apprentissage"""</span>
+    score = model.evaluate(data)
+    <span class="text-blue-400">return</span> f<span class="text-emerald-400">"Optimisation requise: {score}%"</span></code></pre>
+</div>
+</div>
+</div>
+<p>
+                    Toutefois, cette transition soulève des questions éthiques cruciales. La protection des données des mineurs et la transparence des algorithmes de notation deviennent des priorités pour les institutions. EduTrack CMS s'efforce d'intégrer ces outils tout en garantissant une souveraineté numérique aux enseignants.
+                </p>
+<p>
+                    En conclusion, l'intelligence artificielle ne remplacera pas l'enseignant, mais elle l'augmentera. En automatisant les tâches répétitives de correction et de gestion, elle redonne au professeur sa mission première : l'accompagnement humain, l'éveil de la curiosité et le développement de la pensée critique.
+                </p>
+</section>
+<!-- Tags / Meta -->
+<footer class="pt-12 mt-12 border-t border-stone-100 flex flex-wrap gap-3">
+<span class="px-4 py-2 bg-surface-container-low text-stone-600 rounded-full text-xs font-bold uppercase tracking-widest">Intelligence Artificielle</span>
+<span class="px-4 py-2 bg-surface-container-low text-stone-600 rounded-full text-xs font-bold uppercase tracking-widest">Pédagogie</span>
+<span class="px-4 py-2 bg-surface-container-low text-stone-600 rounded-full text-xs font-bold uppercase tracking-widest">Futur</span>
+</footer>
+</article>
+</main>
+<!-- Footer -->
+<footer class="w-full py-12 mt-24 bg-stone-50 dark:bg-stone-900 bg-stone-100 dark:bg-stone-800/50 flat no-shadows">
+<div class="max-w-[720px] mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+<p class="font-sans text-sm text-stone-500 dark:text-stone-400">© 2024 EduTrack CMS. All rights reserved.</p>
+<div class="flex gap-8">
+<a class="font-sans text-sm text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors" href="#">Home</a>
+<a class="font-sans text-sm text-stone-900 dark:text-stone-100 underline underline-offset-4 hover:text-stone-900 dark:hover:text-stone-100 transition-colors" href="#">Admin</a>
+</div>
+</div>
+</footer>
+</body></html>

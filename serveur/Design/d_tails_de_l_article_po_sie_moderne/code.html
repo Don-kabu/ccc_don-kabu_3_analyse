@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Digital Scholar - La Métaphysique de la Poésie Moderne</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Plus+Jakarta+Sans:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary": "#ffffff",
+              "inverse-surface": "#33302d",
+              "on-secondary-fixed": "#00174b",
+              "on-background": "#1e1b19",
+              "surface-container-lowest": "#ffffff",
+              "secondary-fixed-dim": "#b4c5ff",
+              "primary-fixed": "#dbe1ff",
+              "surface-container-high": "#eee7e3",
+              "primary-fixed-dim": "#b4c5ff",
+              "on-tertiary": "#ffffff",
+              "outline": "#737686",
+              "tertiary-container": "#bc4800",
+              "on-secondary-fixed-variant": "#31447b",
+              "tertiary-fixed": "#ffdbcd",
+              "on-primary": "#ffffff",
+              "tertiary-fixed-dim": "#ffb596",
+              "secondary-container": "#acbfff",
+              "on-tertiary-fixed-variant": "#7d2d00",
+              "on-primary-fixed": "#00174b",
+              "background": "#fff8f5",
+              "inverse-on-surface": "#f7efeb",
+              "secondary-fixed": "#dbe1ff",
+              "on-tertiary-fixed": "#360f00",
+              "surface-dim": "#e0d8d5",
+              "on-secondary-container": "#394c84",
+              "surface-container-highest": "#e9e1dd",
+              "outline-variant": "#c3c6d7",
+              "on-surface": "#1e1b19",
+              "primary-container": "#2563eb",
+              "on-surface-variant": "#434655",
+              "surface-variant": "#e9e1dd",
+              "surface-bright": "#fff8f5",
+              "on-error": "#ffffff",
+              "on-primary-fixed-variant": "#003ea8",
+              "surface": "#fff8f5",
+              "primary": "#004ac6",
+              "on-tertiary-container": "#ffede6",
+              "inverse-primary": "#b4c5ff",
+              "surface-container": "#f4ece8",
+              "secondary": "#495c95",
+              "error-container": "#ffdad6",
+              "tertiary": "#943700",
+              "surface-container-low": "#faf2ee",
+              "surface-tint": "#0053db",
+              "on-primary-container": "#eeefff",
+              "on-error-container": "#93000a",
+              "error": "#ba1a1a"
+            },
+            fontFamily: {
+              "headline": ["Newsreader", "serif"],
+              "body": ["Plus Jakarta Sans", "sans-serif"],
+              "label": ["Plus Jakarta Sans", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; line-height: 1.6; }
+        .font-serif { font-family: 'Newsreader', serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-nav { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); }
+        .dark .glass-nav { background: rgba(28, 25, 23, 0.8); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 glass-nav">
+<div class="flex justify-between items-center w-full px-6 py-4 max-w-[720px] mx-auto">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high overflow-hidden">
+<img alt="Scholar Profile" class="w-full h-full object-cover" data-alt="Close-up portrait of a thoughtful intellectual with soft studio lighting and a warm sepia tone" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1UTb70XtW6iKULMEuw4exi641zwdodikrfLXvQADKQH4hg7vL-URrYFyTJAFki-ohyUmMUsARrOsv-9956Jg2IueWgLIgnH0JDeyxhCE8DWRlmc-o06aRXlohTNh62StFe3zWjDg-v3rIzI_GoL_WkhHC5mkvvzFAl4q_LTRJPtDfl67feNLrpujO2ttKQjPyJ5CevuopTmEl6dAQVNMfqHAsLFmKmRaNKLXFu78tEKAqfUVo7PI-XG20jNGzumM3UsOLYjR6"/>
+</div>
+<span class="text-2xl font-serif italic text-stone-900 dark:text-stone-100 tracking-[-0.02em]">Digital Scholar</span>
+</div>
+<div class="text-stone-500 dark:text-stone-400">
+<span class="material-symbols-outlined hover:text-blue-600 transition-colors cursor-pointer" data-icon="settings">settings</span>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-32 max-w-[720px] mx-auto px-6">
+<!-- Breadcrumb / Meta -->
+<nav class="mb-12 flex items-center gap-2 text-sm font-label uppercase tracking-widest text-stone-500">
+<span class="hover:text-primary cursor-pointer transition-colors">Analyses</span>
+<span class="material-symbols-outlined text-[12px]" data-icon="chevron_right">chevron_right</span>
+<span class="text-on-surface-variant">Poésie</span>
+</nav>
+<!-- Article Title -->
+<section class="mb-16">
+<h1 class="text-4xl md:text-5xl font-serif text-stone-900 dark:text-stone-100 leading-tight tracking-tight mb-8">
+                La Métaphysique de la Poésie Moderne
+            </h1>
+<p class="text-lg font-body text-on-surface-variant leading-relaxed">
+                Une exploration approfondie de la manière dont les structures métaphysiques informent le vers libre contemporain, transformant la perception du temps et de l'espace à travers la strophe.
+            </p>
+</section>
+<!-- Key Metrics Bento Grid -->
+<section class="grid grid-cols-2 md:grid-cols-3 gap-6 mb-20">
+<div class="col-span-2 bg-surface-container-lowest p-8 rounded-xl shadow-sm">
+<span class="text-xs font-label uppercase tracking-widest text-stone-500 mb-2 block">Temps d'exposition réel</span>
+<div class="flex items-baseline gap-2">
+<span class="text-5xl font-body font-light text-primary">14.5</span>
+<span class="text-xl font-serif italic text-stone-400">mins</span>
+</div>
+<div class="mt-6 flex items-center gap-2 text-sm text-green-600">
+<span class="material-symbols-outlined text-sm" data-icon="trending_up">trending_up</span>
+<span>+12% vs moyenne globale</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-8 rounded-xl flex flex-col justify-between">
+<span class="text-xs font-label uppercase tracking-widest text-stone-500 block">Visibilité</span>
+<span class="text-4xl font-body text-stone-900">92%</span>
+</div>
+<div class="bg-surface-container-low p-8 rounded-xl flex flex-col justify-between">
+<span class="text-xs font-label uppercase tracking-widest text-stone-500 block">Impressions</span>
+<span class="text-4xl font-body text-stone-900">450</span>
+</div>
+<div class="col-span-2 bg-primary p-8 rounded-xl text-on-primary shadow-lg bg-gradient-to-br from-primary to-primary-container">
+<span class="text-xs font-label uppercase tracking-widest text-on-primary/70 block mb-4">Volume de mots</span>
+<div class="flex items-center gap-4">
+<span class="text-6xl font-body font-bold">1200</span>
+<span class="material-symbols-outlined text-4xl opacity-50" data-icon="description">description</span>
+</div>
+</div>
+</section>
+<!-- Content Structure Visualization -->
+<section class="mb-20">
+<h2 class="text-2xl font-serif text-stone-900 mb-8">Structure de l'Analyse</h2>
+<div class="space-y-6">
+<!-- Progress Row -->
+<div class="flex h-3 w-full rounded-full overflow-hidden bg-surface-container-high">
+<div class="h-full bg-stone-300" style="width: 16.6%"></div>
+<div class="h-full bg-primary" style="width: 66.6%"></div>
+<div class="h-full bg-stone-500" style="width: 16.6%"></div>
+</div>
+<div class="grid grid-cols-3 gap-4 text-sm font-label">
+<div>
+<span class="block text-stone-400">Intro</span>
+<span class="font-bold">200 mots</span>
+</div>
+<div class="text-center">
+<span class="block text-stone-400">Analyse Centrale</span>
+<span class="font-bold text-primary">800 mots</span>
+</div>
+<div class="text-right">
+<span class="block text-stone-400">Conclusion</span>
+<span class="font-bold">200 mots</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Gallery / Media Richness -->
+<section class="mb-20">
+<div class="flex justify-between items-end mb-8">
+<h2 class="text-2xl font-serif text-stone-900">Richesse Média</h2>
+<span class="text-sm font-label text-stone-500">4 Ressources Educatives</span>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="aspect-[4/5] rounded-xl bg-stone-100 overflow-hidden">
+<img alt="Artistic visual metaphor" class="w-full h-full object-cover" data-alt="Abstract minimalist ink painting showing fluid lines and geometric shapes on textured off-white paper" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIdM75N5XdeqB8jeg4fQu2HoQj_O66MtFuXFc_cdQAJyxWHc1373ZWNrzItSVR3JFq2y8aQfne0uqKEcH-IPRv0cgevaQRXEpYuGuNXIwUjaUw3wqTn0ce9pZP_122E4vBmRYQVsLONW-aZPjl8gFeyWcZ0Xogp0zsPOIZYnv57Kf7HEM6FN5eUsPjBREC9y3JmNbZ9OjBWBCKUeBw2s8pCXZhHFQ13IiV6dGZXYY4b8BZwapKxj-URiZcqRp2keP-3zmorzZw"/>
+</div>
+<div class="space-y-4">
+<div class="aspect-square rounded-xl bg-stone-100 overflow-hidden">
+<img alt="Historical manuscript close-up" class="w-full h-full object-cover" data-alt="Close-up of an old parchment manuscript with elegant handwritten calligraphy and faded ink in warm lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwQUnB34-9i3syjwzzdFE06kpHxr5-nVGQBUNy-uKRpDFN-E3QiSdU1GTmnzHxNEp5OhWk45zUyi_q6aNOsbrsEcrid6NnyfPoTPK8ToYn8w6CMbaPVgwoOXFFY3nLKBJ9DRKrfeTCCGYekRy2aYctlNTi9-V4nMgZ9XSz3JpjbfdGDkO0yqUVadwnbNz2Mf1x-2Iqid5AIeGx3VvDTqeMaQfcgVek6iWfvL5mOD6OscXuF30yPuhD4Os5FQRHoXwTxFmWAl4q"/>
+</div>
+<div class="aspect-[4/2.35] rounded-xl bg-stone-100 overflow-hidden">
+<img alt="Modern typography study" class="w-full h-full object-cover" data-alt="Macro photography of clean sans-serif typography printed on high-quality grainy paper with dramatic shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACscSh5kvO3eAOltBEIZmt15fPB6vmFSV-EKC1O1gxV4MoMeFhEMIgccAkeNxpcDh0SI_VWfLsRqlMdo9aDRTVOJ57apiyu5eu5F7E9bBhmeeNUXXKMLAdrUDyg6wUePTVhR_uYXgDJY2XNDRzCSHv_Qk2bOZ7_camiVxaZ2XX4u1NLrczG7dLA8qpHmGjhmkEpl_2lUF9i_xS5MEcNPuFajhPTBihHPJvZbn1gQxiUqNbSInuAHXACf3rgpR9d5OdSGUbX_-R"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Trend Chart Simulation -->
+<section class="mb-20 p-8 rounded-xl bg-surface-container-low">
+<h2 class="text-lg font-serif text-stone-900 mb-8">Progression des vues (7 derniers jours)</h2>
+<div class="relative h-48 flex items-end gap-2 px-2">
+<!-- Simulated Line/Bar Graph -->
+<div class="flex-1 bg-stone-300/40 rounded-t-lg h-[40%] hover:bg-primary/40 transition-colors"></div>
+<div class="flex-1 bg-stone-300/40 rounded-t-lg h-[55%] hover:bg-primary/40 transition-colors"></div>
+<div class="flex-1 bg-stone-300/40 rounded-t-lg h-[45%] hover:bg-primary/40 transition-colors"></div>
+<div class="flex-1 bg-stone-300/40 rounded-t-lg h-[70%] hover:bg-primary/40 transition-colors"></div>
+<div class="flex-1 bg-stone-300/40 rounded-t-lg h-[85%] hover:bg-primary/40 transition-colors"></div>
+<div class="flex-1 bg-primary rounded-t-lg h-[95%]"></div>
+<div class="flex-1 bg-stone-300/40 rounded-t-lg h-[80%] hover:bg-primary/40 transition-colors"></div>
+</div>
+<div class="flex justify-between mt-4 text-[10px] font-label uppercase tracking-widest text-stone-400 px-2">
+<span>Lun</span>
+<span>Mar</span>
+<span>Mer</span>
+<span>Jeu</span>
+<span>Ven</span>
+<span class="text-primary font-bold">Sam</span>
+<span>Dim</span>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 glass-nav shadow-[0_-20px_40px_rgba(28,25,23,0.04)]">
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-6 py-1 hover:bg-stone-100 dark:hover:bg-stone-800 transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="home">home</span>
+<span class="text-xs font-sans uppercase tracking-widest">Accueil</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full px-6 py-1 active:scale-95 duration-300" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="analytics">analytics</span>
+<span class="text-xs font-sans uppercase tracking-widest">Données</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-6 py-1 hover:bg-stone-100 dark:hover:bg-stone-800 transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="description">description</span>
+<span class="text-xs font-sans uppercase tracking-widest">Analyse</span>
+</a>
+</nav>
+</body></html>

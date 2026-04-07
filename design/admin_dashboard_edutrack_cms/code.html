@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&amp;family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&amp;family=JetBrains+Mono:wght@400;500&amp;family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Public+Sans:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-tint": "#0053db",
+              "inverse-surface": "#33302d",
+              "on-tertiary-fixed": "#360f00",
+              "surface-container-highest": "#e9e1dd",
+              "surface-variant": "#e9e1dd",
+              "surface-container-low": "#faf2ee",
+              "on-background": "#1e1b19",
+              "primary-container": "#2563eb",
+              "outline": "#737686",
+              "surface-container": "#f4ece8",
+              "primary-fixed-dim": "#b4c5ff",
+              "tertiary-fixed": "#ffdbcd",
+              "on-primary-fixed-variant": "#003ea8",
+              "on-primary": "#ffffff",
+              "error-container": "#ffdad6",
+              "primary": "#004ac6",
+              "on-tertiary-fixed-variant": "#7d2d00",
+              "surface": "#fff8f5",
+              "on-surface": "#1e1b19",
+              "on-primary-container": "#eeefff",
+              "secondary": "#645d58",
+              "secondary-fixed": "#eae1da",
+              "on-tertiary-container": "#ffede6",
+              "surface-container-lowest": "#ffffff",
+              "on-primary-fixed": "#00174b",
+              "inverse-on-surface": "#f7efeb",
+              "on-secondary-container": "#6a635e",
+              "error": "#ba1a1a",
+              "on-secondary": "#ffffff",
+              "surface-dim": "#e0d8d5",
+              "primary-fixed": "#dbe1ff",
+              "tertiary": "#943700",
+              "background": "#fff8f5",
+              "tertiary-container": "#bc4800",
+              "on-secondary-fixed-variant": "#4b4641",
+              "on-tertiary": "#ffffff",
+              "outline-variant": "#c3c6d7",
+              "inverse-primary": "#b4c5ff",
+              "tertiary-fixed-dim": "#ffb596",
+              "on-secondary-fixed": "#1f1b17",
+              "on-surface-variant": "#434655",
+              "secondary-container": "#eae1da",
+              "on-error-container": "#93000a",
+              "on-error": "#ffffff",
+              "surface-bright": "#fff8f5",
+              "secondary-fixed-dim": "#cec5bf",
+              "surface-container-high": "#eee7e3"
+            },
+            fontFamily: {
+              "headline": ["Newsreader", "serif"],
+              "body": ["Public Sans", "sans-serif"],
+              "label": ["Public Sans", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Public Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 right-0 h-[60px] bg-white/80 dark:bg-stone-950/80 backdrop-blur-xl border-b border-stone-200/15 dark:border-stone-800/15 shadow-[0_2px_10px_rgba(28,25,23,0.05)] z-50">
+<div class="max-w-[720px] mx-auto px-8 flex justify-between items-center w-full h-full">
+<div class="flex items-center gap-3 cursor-pointer active:opacity-70">
+<span class="material-symbols-outlined text-blue-600 dark:text-blue-400" data-icon="menu_book">menu_book</span>
+<span class="font-serif text-stone-900 dark:text-stone-50 text-xl tracking-tight">EduTrack</span>
+</div>
+<nav class="flex gap-6 items-center">
+<span class="text-stone-500 dark:text-stone-400 font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 cursor-pointer active:opacity-70">Home</span>
+<span class="text-blue-600 dark:text-blue-400 font-bold hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 cursor-pointer active:opacity-70">Admin</span>
+</nav>
+</div>
+</header>
+<main class="max-w-[720px] mx-auto px-8 pt-[120px] pb-24">
+<!-- Dashboard Header -->
+<div class="mb-12">
+<h1 class="font-headline text-5xl font-medium text-stone-900 tracking-tight leading-tight mb-4">Dashboard d’Analyse</h1>
+<p class="font-body text-stone-500 text-lg">Gérez vos contenus pédagogiques et suivez l'engagement de vos lecteurs.</p>
+</div>
+<!-- Primary CTA -->
+<div class="mb-16 flex justify-end">
+<button class="bg-primary-container hover:opacity-90 text-white px-8 py-3.5 rounded-full font-label font-bold tracking-wide flex items-center gap-2 shadow-subtle transition-all active:scale-95">
+<span class="material-symbols-outlined text-[20px]" data-icon="edit">edit</span>
+                Rédiger un nouvel article
+            </button>
+</div>
+<!-- Stats Overview (Tonal Layering instead of boxes) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-1 mb-16 rounded-xl overflow-hidden border border-stone-200/15">
+<div class="bg-surface-container-lowest p-8 flex flex-col gap-2">
+<span class="text-stone-400 font-label font-medium uppercase tracking-widest text-xs">Lectures</span>
+<div class="flex items-baseline gap-1">
+<span class="text-3xl font-headline font-bold text-stone-900">1,240</span>
+<span class="text-green-600 text-xs font-bold">+12%</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-8 flex flex-col gap-2">
+<span class="text-stone-400 font-label font-medium uppercase tracking-widest text-xs">Temps moyen</span>
+<div class="flex items-baseline gap-1">
+<span class="text-3xl font-headline font-bold text-stone-900">4m 30s</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-8 flex flex-col gap-2">
+<span class="text-stone-400 font-label font-medium uppercase tracking-widest text-xs">Taux de lecture</span>
+<div class="flex items-baseline gap-1">
+<span class="text-3xl font-headline font-bold text-stone-900">85%</span>
+</div>
+</div>
+</div>
+<!-- Published Articles List -->
+<section class="space-y-8">
+<h2 class="font-headline text-2xl text-stone-900 mb-6">Articles publiés</h2>
+<div class="space-y-4">
+<!-- Article Item 1 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl flex items-center justify-between border border-stone-200/15 hover:shadow-subtle transition-shadow group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-stone-100 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-500" data-alt="Close up of an open book with soft warm lighting and textured pages in a scholarly setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZ9KI70XlCCwagKV5ihuEebV82BRqlLvj4IHi2e2YDmhF1qbavBDKgUwehICVEpm7BsxTQMwv3aNxwdcPAHjmpzlXiIuUn8GZrk6nR-3aK92Y8PSbtkwZoqyl2K-wg0g-jtHHGYrEYUAEkARQMq3i3JEusCKTKzmjE-j4xQL0ACkSHe1wo5kcnyQbWYptinB-sMN4SJuob8yjaS5VQZznnz6qoqzkafhbau2FJrDw1V5ObSDhVYKyGpwxB39YO48P5C2BJf3RcaGU"/>
+</div>
+<div>
+<h3 class="font-body font-bold text-stone-900">L'Architecture Moderne au XXe Siècle</h3>
+<p class="text-xs text-stone-400 font-label">Publié le 12 Octobre 2024</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex flex-col items-end">
+<span class="text-xs text-stone-400 font-medium uppercase tracking-tighter">Analytics</span>
+<!-- Toggle Switch -->
+<label class="relative inline-flex items-center cursor-pointer mt-1">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+</div>
+</div>
+<!-- Article Item 2 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl flex items-center justify-between border border-stone-200/15 hover:shadow-subtle transition-shadow group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-stone-100 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-500" data-alt="Quiet library corner with a single lamp lighting a wooden desk and stack of papers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_cVEo2GLsrUGPIdsiuyyN56jhZBdcXe7yQToyRl9LvgtgV5DvkAQoBhJ8r6siMkVQ2wg9OaECxGPAtcenb4qPOw_Bxx2OVA0Za5oTryAcBvx0Fdi3wEIBaDZ4hQyuMg4pVlzvm8kcp_PUGqpP56rqesKfd-0KSyqXbwf8IIuRbio5VVht-jxXO98uRThBNsR4CnzeieCf-qGjsUl8kg6MAt4dwaL6n0GSHGijjff-MW-l5N3n9kpBV9Wm9PWSj1F8zBCs6XeHonM"/>
+</div>
+<div>
+<h3 class="font-body font-bold text-stone-900">Fondamentaux de la Pensée Critique</h3>
+<p class="text-xs text-stone-400 font-label">Publié le 08 Octobre 2024</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex flex-col items-end">
+<span class="text-xs text-stone-400 font-medium uppercase tracking-tighter">Analytics</span>
+<label class="relative inline-flex items-center cursor-pointer mt-1">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+</div>
+</div>
+<!-- Article Item 3 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl flex items-center justify-between border border-stone-200/15 hover:shadow-subtle transition-shadow group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-stone-100 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-500" data-alt="Scientific glassware in a clean laboratory with cool blue ambient light and reflections" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZKy0c9_XHA4fa7OvapgGHJ-Z5UoJbzauW1NXV-31yTddZdaAbitpFHqt-Sl4rSm6g19FE6B8SEbV9QKFahBx8a7GUIruYdfNtynWbKO2FFgWYVkJU0TFim3bL94TK5BOrh4lNqIqYqU8w8PrX9tZ5fw2SDLNfAbV6_15IQ9adqII5RGB3eLqyYeCPYHYQ1TAfqFgxCJoaBQAJFufdGesk9slFlvpz4PbwzvQSOICKASTka7HHYihlrBccWBbAPtj-9Wg6lXyYAbE"/>
+</div>
+<div>
+<h3 class="font-body font-bold text-stone-900">Physique Quantique : Une Introduction</h3>
+<p class="text-xs text-stone-400 font-label">Publié le 30 Septembre 2024</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex flex-col items-end">
+<span class="text-xs text-stone-400 font-medium uppercase tracking-tighter">Analytics</span>
+<label class="relative inline-flex items-center cursor-pointer mt-1">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-12 mt-24 bg-stone-50 dark:bg-stone-900">
+<div class="max-w-[720px] mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+<span class="font-sans text-sm text-stone-500 dark:text-stone-400">© 2024 EduTrack CMS. All rights reserved.</span>
+<div class="flex gap-8">
+<a class="text-stone-500 dark:text-stone-400 font-sans text-sm hover:text-stone-900 dark:hover:text-stone-100 transition-colors" href="#">Home</a>
+<a class="text-stone-900 dark:text-stone-100 underline underline-offset-4 font-sans text-sm hover:text-stone-900 dark:hover:text-stone-100 transition-colors" href="#">Admin</a>
+</div>
+</div>
+</footer>
+</body></html>

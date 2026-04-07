@@ -17,7 +17,10 @@ from . import db_utils
 
 def api_docs(request):
     """Public landing page: API reference for the Digital Scholar server."""
-    return render(request, 'analytics/api_docs.html')
+    return render(
+        request, 'analytics/api_docs.html', 
+        context={'base_url': request.build_absolute_uri('/')}
+    )
 
 
 # ---------------------------------------------------------------------------
