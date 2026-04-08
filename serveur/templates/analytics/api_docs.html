@@ -285,7 +285,7 @@ pre.code-block {
     Digital Scholar<span class="brand-dot"></span>
   </a>
   <div class="nav-right">
-    <span class="version-badge">API v1.0</span>
+    <span class="version-badge">API v2.0</span>
     <a href="{% url 'login' %}" class="btn-login">
       <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
@@ -307,9 +307,9 @@ pre.code-block {
   </div>
   <h1>Documentation de l'<span>API</span></h1>
   <p>
-    Intégrez le suivi analytique de votre application cliente avec le
-    tableau de bord Digital Scholar. Deux endpoints REST pour envoyer
-    vos événements en temps réel.
+    Intégrez votre application cliente avec le tableau de bord Digital Scholar.
+    11 endpoints REST : 2 legacy pour la collecte d'événements bruts et
+    9 endpoints de synchronisation pour le miroir complet des données.
   </p>
   <div class="base-url">
     <span>BASE URL</span>
@@ -328,8 +328,8 @@ pre.code-block {
           <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
         </svg>
       </div>
-      <h4>2 endpoints REST</h4>
-      <p>Un pour les événements de lecture, un pour les actions utilisateur.</p>
+      <h4>11 endpoints REST</h4>
+      <p>2 legacy (collecte brute) + 9 sync (miroir complet client → serveur).</p>
     </div>
     <div class="qs-card">
       <div class="qs-icon teal">
@@ -559,16 +559,527 @@ pre.code-block {
     </div>
   </div>
 
+  <!-- ================================================================= -->
+  <!-- Section: Sync API -->
+  <!-- ================================================================= -->
+  <p class="section-label" style="margin-top:52px">Synchronisation</p>
+  <h2 class="section-title">API de synchronisation (client → serveur)</h2>
+
+  <div class="info-box" style="margin-bottom:32px">
+    <strong>Principe :</strong> chaque endpoint effectue un <em>upsert</em> (update-or-create)
+    sur le modèle miroir côté serveur, identifié par le champ <code style="font-family:monospace">client_id</code>.
+    Toutes les routes sont <code style="font-family:monospace">POST</code>, sans authentification (CSRF exempt).
+  </div>
+
+  <!-- ── sync/user ── -->
+  <div class="endpoint-card">
+    <div class="endpoint-header">
+      <span class="method-badge post">POST</span>
+      <span class="endpoint-url">/api/sync/user/</span>
+      <span class="endpoint-desc-badge">Sync utilisateur</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="endpoint-description">
+        Crée ou met à jour un utilisateur miroir (<code style="font-family:monospace">ClientUser</code>)
+        à partir des données du client.
+      </p>
+      <p class="params-label">Corps de la requête (JSON)</p>
+      <table class="params-table">
+        <thead><tr><th>Champ</th><th>Type</th><th>Requis</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>client_id</code></td><td>integer</td><td><span class="badge-req">requis</span></td><td>ID de l'utilisateur côté client.</td></tr>
+          <tr><td><code>username</code></td><td>string</td><td><span class="badge-req">requis</span></td><td>Nom d'utilisateur.</td></tr>
+          <tr><td><code>first_name</code></td><td>string</td><td><span class="badge-opt">optionnel</span></td><td>Prénom.</td></tr>
+          <tr><td><code>last_name</code></td><td>string</td><td><span class="badge-opt">optionnel</span></td><td>Nom de famille.</td></tr>
+          <tr><td><code>email</code></td><td>string</td><td><span class="badge-opt">optionnel</span></td><td>Adresse e-mail.</td></tr>
+          <tr><td><code>is_active</code></td><td>boolean</td><td><span class="badge-opt">optionnel</span></td><td>Compte actif (défaut : <code>true</code>).</td></tr>
+          <tr><td><code>date_joined</code></td><td>ISO 8601</td><td><span class="badge-opt">optionnel</span></td><td>Date d'inscription.</td></tr>
+          <tr><td><code>last_login</code></td><td>ISO 8601</td><td><span class="badge-opt">optionnel</span></td><td>Dernière connexion.</td></tr>
+        </tbody>
+      </table>
+      <p class="params-label">Exemple</p>
+      <div class="code-group">
+        <div class="code-group-tabs"><div class="code-tab active">JSON</div></div>
+        <pre class="code-block"><span class="json-comment">// POST /api/sync/user/</span>
+{
+  <span class="json-key">"client_id"</span>: <span class="json-num">1</span>,
+  <span class="json-key">"username"</span>: <span class="json-str">"marie_dupont"</span>,
+  <span class="json-key">"first_name"</span>: <span class="json-str">"Marie"</span>,
+  <span class="json-key">"last_name"</span>: <span class="json-str">"Dupont"</span>,
+  <span class="json-key">"email"</span>: <span class="json-str">"marie@example.com"</span>,
+  <span class="json-key">"is_active"</span>: <span class="json-bool">true</span>,
+  <span class="json-key">"date_joined"</span>: <span class="json-str">"2026-01-15T10:30:00"</span>
+}</pre>
+      </div>
+      <p class="params-label" style="margin-top:20px">Réponses</p>
+      <div class="response-row">
+        <span class="response-status s200">200</span>
+        <div class="response-block">{ <span class="json-key">"ok"</span>: <span class="json-bool">true</span>, <span class="json-key">"created"</span>: <span class="json-bool">true</span>, <span class="json-key">"id"</span>: <span class="json-num">7</span> }</div>
+      </div>
+      <div class="response-row">
+        <span class="response-status s400">400</span>
+        <div class="response-block">{ <span class="json-key">"ok"</span>: <span class="json-bool">false</span>, <span class="json-key">"error"</span>: <span class="json-str">"missing client_id"</span> }</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── sync/tag ── -->
+  <div class="endpoint-card">
+    <div class="endpoint-header">
+      <span class="method-badge post">POST</span>
+      <span class="endpoint-url">/api/sync/tag/</span>
+      <span class="endpoint-desc-badge">Sync tag</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="endpoint-description">
+        Crée ou met à jour un tag miroir (<code style="font-family:monospace">ClientTag</code>).
+      </p>
+      <p class="params-label">Corps de la requête (JSON)</p>
+      <table class="params-table">
+        <thead><tr><th>Champ</th><th>Type</th><th>Requis</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>client_id</code></td><td>integer</td><td><span class="badge-req">requis</span></td><td>ID du tag côté client.</td></tr>
+          <tr><td><code>name</code></td><td>string</td><td><span class="badge-req">requis</span></td><td>Nom du tag.</td></tr>
+          <tr><td><code>slug</code></td><td>string</td><td><span class="badge-opt">optionnel</span></td><td>Slug URL.</td></tr>
+        </tbody>
+      </table>
+      <p class="params-label">Exemple</p>
+      <div class="code-group">
+        <div class="code-group-tabs"><div class="code-tab active">JSON</div></div>
+        <pre class="code-block"><span class="json-comment">// POST /api/sync/tag/</span>
+{
+  <span class="json-key">"client_id"</span>: <span class="json-num">3</span>,
+  <span class="json-key">"name"</span>: <span class="json-str">"Pédagogie"</span>,
+  <span class="json-key">"slug"</span>: <span class="json-str">"pedagogie"</span>
+}</pre>
+      </div>
+      <p class="params-label" style="margin-top:20px">Réponses</p>
+      <div class="response-row">
+        <span class="response-status s200">200</span>
+        <div class="response-block">{ <span class="json-key">"ok"</span>: <span class="json-bool">true</span>, <span class="json-key">"created"</span>: <span class="json-bool">true</span>, <span class="json-key">"id"</span>: <span class="json-num">3</span> }</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── sync/article ── -->
+  <div class="endpoint-card">
+    <div class="endpoint-header">
+      <span class="method-badge post">POST</span>
+      <span class="endpoint-url">/api/sync/article/</span>
+      <span class="endpoint-desc-badge">Sync article</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="endpoint-description">
+        Crée ou met à jour un article miroir (<code style="font-family:monospace">ClientArticle</code>)
+        avec association automatique de l'auteur et des tags.
+      </p>
+      <p class="params-label">Corps de la requête (JSON)</p>
+      <table class="params-table">
+        <thead><tr><th>Champ</th><th>Type</th><th>Requis</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>client_id</code></td><td>integer</td><td><span class="badge-req">requis</span></td><td>ID de l'article côté client.</td></tr>
+          <tr><td><code>author_id</code></td><td>integer</td><td><span class="badge-req">requis</span></td><td><code>client_id</code> de l'auteur (ClientUser).</td></tr>
+          <tr><td><code>title</code></td><td>string</td><td><span class="badge-req">requis</span></td><td>Titre de l'article.</td></tr>
+          <tr><td><code>slug</code></td><td>string</td><td><span class="badge-opt">optionnel</span></td><td>Slug URL.</td></tr>
+          <tr><td><code>category</code></td><td>string</td><td><span class="badge-opt">optionnel</span></td><td>Catégorie principale.</td></tr>
+          <tr><td><code>intro</code></td><td>text</td><td><span class="badge-opt">optionnel</span></td><td>Introduction.</td></tr>
+          <tr><td><code>objectives</code></td><td>text</td><td><span class="badge-opt">optionnel</span></td><td>Objectifs pédagogiques.</td></tr>
+          <tr><td><code>content</code></td><td>text</td><td><span class="badge-opt">optionnel</span></td><td>Contenu principal.</td></tr>
+          <tr><td><code>conclusion</code></td><td>text</td><td><span class="badge-opt">optionnel</span></td><td>Conclusion.</td></tr>
+          <tr><td><code>reflection_questions</code></td><td>text</td><td><span class="badge-opt">optionnel</span></td><td>Questions de réflexion.</td></tr>
+          <tr><td><code>resources</code></td><td>text</td><td><span class="badge-opt">optionnel</span></td><td>Ressources complémentaires.</td></tr>
+          <tr><td><code>illustration_url</code></td><td>string</td><td><span class="badge-opt">optionnel</span></td><td>URL de l'image d'illustration.</td></tr>
+          <tr><td><code>video_url</code></td><td>string</td><td><span class="badge-opt">optionnel</span></td><td>URL de la vidéo.</td></tr>
+          <tr><td><code>audio_url</code></td><td>string</td><td><span class="badge-opt">optionnel</span></td><td>URL de l'audio.</td></tr>
+          <tr><td><code>enable_analytics</code></td><td>boolean</td><td><span class="badge-opt">optionnel</span></td><td>Activer le suivi analytique (défaut : <code>true</code>).</td></tr>
+          <tr><td><code>status</code></td><td>string</td><td><span class="badge-opt">optionnel</span></td><td><code>draft</code> ou <code>published</code>.</td></tr>
+          <tr><td><code>published_at</code></td><td>ISO 8601</td><td><span class="badge-opt">optionnel</span></td><td>Date de publication.</td></tr>
+          <tr><td><code>tag_ids</code></td><td>array[int]</td><td><span class="badge-opt">optionnel</span></td><td>Liste des <code>client_id</code> des tags associés.</td></tr>
+          <tr><td><code>created_at</code></td><td>ISO 8601</td><td><span class="badge-opt">optionnel</span></td><td>Date de création.</td></tr>
+          <tr><td><code>updated_at</code></td><td>ISO 8601</td><td><span class="badge-opt">optionnel</span></td><td>Date de dernière modification.</td></tr>
+        </tbody>
+      </table>
+      <p class="params-label">Exemple</p>
+      <div class="code-group">
+        <div class="code-group-tabs"><div class="code-tab active">JSON</div></div>
+        <pre class="code-block"><span class="json-comment">// POST /api/sync/article/</span>
+{
+  <span class="json-key">"client_id"</span>: <span class="json-num">12</span>,
+  <span class="json-key">"author_id"</span>: <span class="json-num">1</span>,
+  <span class="json-key">"title"</span>: <span class="json-str">"Poésie moderne en classe"</span>,
+  <span class="json-key">"slug"</span>: <span class="json-str">"poesie-moderne-en-classe"</span>,
+  <span class="json-key">"category"</span>: <span class="json-str">"Pédagogie"</span>,
+  <span class="json-key">"content"</span>: <span class="json-str">"&lt;p&gt;Contenu HTML…&lt;/p&gt;"</span>,
+  <span class="json-key">"status"</span>: <span class="json-str">"published"</span>,
+  <span class="json-key">"published_at"</span>: <span class="json-str">"2026-03-20T14:00:00"</span>,
+  <span class="json-key">"tag_ids"</span>: [<span class="json-num">3</span>, <span class="json-num">7</span>]
+}</pre>
+      </div>
+      <p class="params-label" style="margin-top:20px">Réponses</p>
+      <div class="response-row">
+        <span class="response-status s200">200</span>
+        <div class="response-block">{ <span class="json-key">"ok"</span>: <span class="json-bool">true</span>, <span class="json-key">"created"</span>: <span class="json-bool">true</span>, <span class="json-key">"id"</span>: <span class="json-num">12</span> }</div>
+      </div>
+      <div class="response-row">
+        <span class="response-status s400">400</span>
+        <div class="response-block">{ <span class="json-key">"ok"</span>: <span class="json-bool">false</span>, <span class="json-key">"error"</span>: <span class="json-str">"missing author_id"</span> }</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── sync/article-delete ── -->
+  <div class="endpoint-card">
+    <div class="endpoint-header">
+      <span class="method-badge post">POST</span>
+      <span class="endpoint-url">/api/sync/article-delete/</span>
+      <span class="endpoint-desc-badge">Suppression article</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="endpoint-description">
+        Supprime le miroir d'un article côté serveur quand il est supprimé sur le client.
+      </p>
+      <p class="params-label">Corps de la requête (JSON)</p>
+      <table class="params-table">
+        <thead><tr><th>Champ</th><th>Type</th><th>Requis</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>client_id</code></td><td>integer</td><td><span class="badge-req">requis</span></td><td>ID de l'article côté client à supprimer.</td></tr>
+        </tbody>
+      </table>
+      <p class="params-label">Exemple</p>
+      <div class="code-group">
+        <div class="code-group-tabs"><div class="code-tab active">JSON</div></div>
+        <pre class="code-block"><span class="json-comment">// POST /api/sync/article-delete/</span>
+{
+  <span class="json-key">"client_id"</span>: <span class="json-num">12</span>
+}</pre>
+      </div>
+      <p class="params-label" style="margin-top:20px">Réponses</p>
+      <div class="response-row">
+        <span class="response-status s200">200</span>
+        <div class="response-block">{ <span class="json-key">"ok"</span>: <span class="json-bool">true</span>, <span class="json-key">"deleted"</span>: <span class="json-bool">true</span> }</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── sync/comment ── -->
+  <div class="endpoint-card">
+    <div class="endpoint-header">
+      <span class="method-badge post">POST</span>
+      <span class="endpoint-url">/api/sync/comment/</span>
+      <span class="endpoint-desc-badge">Sync commentaire</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="endpoint-description">
+        Crée ou met à jour un commentaire miroir (<code style="font-family:monospace">ClientReaderComment</code>).
+        Supporte les réponses imbriquées via <code style="font-family:monospace">parent_id</code>.
+      </p>
+      <p class="params-label">Corps de la requête (JSON)</p>
+      <table class="params-table">
+        <thead><tr><th>Champ</th><th>Type</th><th>Requis</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>client_id</code></td><td>integer</td><td><span class="badge-req">requis</span></td><td>ID du commentaire côté client.</td></tr>
+          <tr><td><code>article_id</code></td><td>integer</td><td><span class="badge-req">requis</span></td><td><code>client_id</code> de l'article associé.</td></tr>
+          <tr><td><code>name</code></td><td>string</td><td><span class="badge-opt">optionnel</span></td><td>Nom de l'auteur du commentaire (défaut : « Lecteur »).</td></tr>
+          <tr><td><code>email</code></td><td>string</td><td><span class="badge-opt">optionnel</span></td><td>E-mail de l'auteur.</td></tr>
+          <tr><td><code>message</code></td><td>text</td><td><span class="badge-req">requis</span></td><td>Contenu du commentaire.</td></tr>
+          <tr><td><code>parent_id</code></td><td>integer|null</td><td><span class="badge-opt">optionnel</span></td><td><code>client_id</code> du commentaire parent (réponse imbriquée).</td></tr>
+          <tr><td><code>is_approved</code></td><td>boolean</td><td><span class="badge-opt">optionnel</span></td><td>Commentaire approuvé (défaut : <code>true</code>).</td></tr>
+          <tr><td><code>created_at</code></td><td>ISO 8601</td><td><span class="badge-opt">optionnel</span></td><td>Date de création.</td></tr>
+        </tbody>
+      </table>
+      <p class="params-label">Exemple</p>
+      <div class="code-group">
+        <div class="code-group-tabs"><div class="code-tab active">JSON</div></div>
+        <pre class="code-block"><span class="json-comment">// POST /api/sync/comment/</span>
+{
+  <span class="json-key">"client_id"</span>: <span class="json-num">45</span>,
+  <span class="json-key">"article_id"</span>: <span class="json-num">12</span>,
+  <span class="json-key">"name"</span>: <span class="json-str">"Jean Martin"</span>,
+  <span class="json-key">"email"</span>: <span class="json-str">"jean@example.com"</span>,
+  <span class="json-key">"message"</span>: <span class="json-str">"Excellent article, merci !"</span>,
+  <span class="json-key">"parent_id"</span>: <span class="json-null">null</span>,
+  <span class="json-key">"is_approved"</span>: <span class="json-bool">true</span>
+}</pre>
+      </div>
+      <p class="params-label" style="margin-top:20px">Réponses</p>
+      <div class="response-row">
+        <span class="response-status s200">200</span>
+        <div class="response-block">{ <span class="json-key">"ok"</span>: <span class="json-bool">true</span>, <span class="json-key">"created"</span>: <span class="json-bool">true</span>, <span class="json-key">"id"</span>: <span class="json-num">45</span> }</div>
+      </div>
+      <div class="response-row">
+        <span class="response-status s400">404</span>
+        <div class="response-block">{ <span class="json-key">"ok"</span>: <span class="json-bool">false</span>, <span class="json-key">"error"</span>: <span class="json-str">"article not found"</span> }</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── sync/analytics ── -->
+  <div class="endpoint-card">
+    <div class="endpoint-header">
+      <span class="method-badge post">POST</span>
+      <span class="endpoint-url">/api/sync/analytics/</span>
+      <span class="endpoint-desc-badge">Sync analytics article</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="endpoint-description">
+        Crée ou met à jour les métriques agrégées d'un article (<code style="font-family:monospace">ClientArticleAnalytics</code>).
+      </p>
+      <p class="params-label">Corps de la requête (JSON)</p>
+      <table class="params-table">
+        <thead><tr><th>Champ</th><th>Type</th><th>Requis</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>client_id</code></td><td>integer</td><td><span class="badge-req">requis</span></td><td>ID de l'analytics côté client.</td></tr>
+          <tr><td><code>article_id</code></td><td>integer</td><td><span class="badge-req">requis</span></td><td><code>client_id</code> de l'article associé.</td></tr>
+          <tr><td><code>total_reads</code></td><td>integer</td><td><span class="badge-opt">optionnel</span></td><td>Nombre total de lectures.</td></tr>
+          <tr><td><code>total_seconds_read</code></td><td>integer</td><td><span class="badge-opt">optionnel</span></td><td>Durée totale de lecture (secondes).</td></tr>
+          <tr><td><code>intro_seconds</code></td><td>integer</td><td><span class="badge-opt">optionnel</span></td><td>Temps sur l'introduction.</td></tr>
+          <tr><td><code>objectives_seconds</code></td><td>integer</td><td><span class="badge-opt">optionnel</span></td><td>Temps sur les objectifs.</td></tr>
+          <tr><td><code>content_seconds</code></td><td>integer</td><td><span class="badge-opt">optionnel</span></td><td>Temps sur le contenu.</td></tr>
+          <tr><td><code>conclusion_seconds</code></td><td>integer</td><td><span class="badge-opt">optionnel</span></td><td>Temps sur la conclusion.</td></tr>
+          <tr><td><code>resources_seconds</code></td><td>integer</td><td><span class="badge-opt">optionnel</span></td><td>Temps sur les ressources.</td></tr>
+        </tbody>
+      </table>
+      <p class="params-label">Exemple</p>
+      <div class="code-group">
+        <div class="code-group-tabs"><div class="code-tab active">JSON</div></div>
+        <pre class="code-block"><span class="json-comment">// POST /api/sync/analytics/</span>
+{
+  <span class="json-key">"client_id"</span>: <span class="json-num">12</span>,
+  <span class="json-key">"article_id"</span>: <span class="json-num">12</span>,
+  <span class="json-key">"total_reads"</span>: <span class="json-num">234</span>,
+  <span class="json-key">"total_seconds_read"</span>: <span class="json-num">47200</span>,
+  <span class="json-key">"intro_seconds"</span>: <span class="json-num">3200</span>,
+  <span class="json-key">"content_seconds"</span>: <span class="json-num">31400</span>,
+  <span class="json-key">"conclusion_seconds"</span>: <span class="json-num">5800</span>
+}</pre>
+      </div>
+      <p class="params-label" style="margin-top:20px">Réponses</p>
+      <div class="response-row">
+        <span class="response-status s200">200</span>
+        <div class="response-block">{ <span class="json-key">"ok"</span>: <span class="json-bool">true</span>, <span class="json-key">"created"</span>: <span class="json-bool">false</span>, <span class="json-key">"id"</span>: <span class="json-num">12</span> }</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── sync/event ── -->
+  <div class="endpoint-card">
+    <div class="endpoint-header">
+      <span class="method-badge post">POST</span>
+      <span class="endpoint-url">/api/sync/event/</span>
+      <span class="endpoint-desc-badge">Sync événement analytics</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="endpoint-description">
+        Crée ou met à jour un événement de lecture individuel
+        (<code style="font-family:monospace">ClientAnalyticsEvent</code>).
+      </p>
+      <p class="params-label">Corps de la requête (JSON)</p>
+      <table class="params-table">
+        <thead><tr><th>Champ</th><th>Type</th><th>Requis</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>client_id</code></td><td>integer</td><td><span class="badge-req">requis</span></td><td>ID de l'événement côté client.</td></tr>
+          <tr><td><code>article_id</code></td><td>integer</td><td><span class="badge-req">requis</span></td><td><code>client_id</code> de l'article.</td></tr>
+          <tr><td><code>section</code></td><td>string</td><td><span class="badge-opt">optionnel</span></td><td>Section lue (<code>intro</code>, <code>content</code>, etc.).</td></tr>
+          <tr><td><code>duration_seconds</code></td><td>integer</td><td><span class="badge-opt">optionnel</span></td><td>Durée en secondes.</td></tr>
+          <tr><td><code>session_id</code></td><td>string</td><td><span class="badge-opt">optionnel</span></td><td>Identifiant de session.</td></tr>
+          <tr><td><code>created_at</code></td><td>ISO 8601</td><td><span class="badge-opt">optionnel</span></td><td>Date de l'événement.</td></tr>
+        </tbody>
+      </table>
+      <p class="params-label">Exemple</p>
+      <div class="code-group">
+        <div class="code-group-tabs"><div class="code-tab active">JSON</div></div>
+        <pre class="code-block"><span class="json-comment">// POST /api/sync/event/</span>
+{
+  <span class="json-key">"client_id"</span>: <span class="json-num">891</span>,
+  <span class="json-key">"article_id"</span>: <span class="json-num">12</span>,
+  <span class="json-key">"section"</span>: <span class="json-str">"content"</span>,
+  <span class="json-key">"duration_seconds"</span>: <span class="json-num">145</span>,
+  <span class="json-key">"session_id"</span>: <span class="json-str">"sess_x7k2m"</span>
+}</pre>
+      </div>
+      <p class="params-label" style="margin-top:20px">Réponses</p>
+      <div class="response-row">
+        <span class="response-status s200">200</span>
+        <div class="response-block">{ <span class="json-key">"ok"</span>: <span class="json-bool">true</span>, <span class="json-key">"created"</span>: <span class="json-bool">true</span>, <span class="json-key">"id"</span>: <span class="json-num">891</span> }</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── sync/action-log ── -->
+  <div class="endpoint-card">
+    <div class="endpoint-header">
+      <span class="method-badge post">POST</span>
+      <span class="endpoint-url">/api/sync/action-log/</span>
+      <span class="endpoint-desc-badge">Sync journal d'action</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="endpoint-description">
+        Crée ou met à jour une entrée de journal d'action
+        (<code style="font-family:monospace">ClientActionLog</code>).
+      </p>
+      <p class="params-label">Corps de la requête (JSON)</p>
+      <table class="params-table">
+        <thead><tr><th>Champ</th><th>Type</th><th>Requis</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>client_id</code></td><td>integer</td><td><span class="badge-req">requis</span></td><td>ID du log côté client.</td></tr>
+          <tr><td><code>action</code></td><td>string</td><td><span class="badge-req">requis</span></td><td>Type d'action (<code>article_view</code>, <code>comment_post</code>, etc.).</td></tr>
+          <tr><td><code>actor_type</code></td><td>string</td><td><span class="badge-opt">optionnel</span></td><td><code>anonymous</code> ou <code>user</code>.</td></tr>
+          <tr><td><code>user_id</code></td><td>integer|null</td><td><span class="badge-opt">optionnel</span></td><td><code>client_id</code> de l'utilisateur.</td></tr>
+          <tr><td><code>article_id</code></td><td>integer|null</td><td><span class="badge-opt">optionnel</span></td><td><code>client_id</code> de l'article.</td></tr>
+          <tr><td><code>request_path</code></td><td>string</td><td><span class="badge-opt">optionnel</span></td><td>Chemin de la requête HTTP.</td></tr>
+          <tr><td><code>request_method</code></td><td>string</td><td><span class="badge-opt">optionnel</span></td><td>Méthode HTTP.</td></tr>
+          <tr><td><code>ip_address</code></td><td>string</td><td><span class="badge-opt">optionnel</span></td><td>Adresse IP du client.</td></tr>
+          <tr><td><code>user_agent</code></td><td>string</td><td><span class="badge-opt">optionnel</span></td><td>User-Agent (max 255 chars).</td></tr>
+          <tr><td><code>session_id</code></td><td>string</td><td><span class="badge-opt">optionnel</span></td><td>ID de session.</td></tr>
+          <tr><td><code>payload</code></td><td>object</td><td><span class="badge-opt">optionnel</span></td><td>Données supplémentaires JSON.</td></tr>
+          <tr><td><code>created_at</code></td><td>ISO 8601</td><td><span class="badge-opt">optionnel</span></td><td>Date de l'action.</td></tr>
+        </tbody>
+      </table>
+      <p class="params-label">Exemple</p>
+      <div class="code-group">
+        <div class="code-group-tabs"><div class="code-tab active">JSON</div></div>
+        <pre class="code-block"><span class="json-comment">// POST /api/sync/action-log/</span>
+{
+  <span class="json-key">"client_id"</span>: <span class="json-num">500</span>,
+  <span class="json-key">"action"</span>: <span class="json-str">"article_view"</span>,
+  <span class="json-key">"actor_type"</span>: <span class="json-str">"user"</span>,
+  <span class="json-key">"user_id"</span>: <span class="json-num">1</span>,
+  <span class="json-key">"article_id"</span>: <span class="json-num">12</span>,
+  <span class="json-key">"request_path"</span>: <span class="json-str">"/articles/poesie-moderne/"</span>,
+  <span class="json-key">"request_method"</span>: <span class="json-str">"GET"</span>
+}</pre>
+      </div>
+      <p class="params-label" style="margin-top:20px">Réponses</p>
+      <div class="response-row">
+        <span class="response-status s200">200</span>
+        <div class="response-block">{ <span class="json-key">"ok"</span>: <span class="json-bool">true</span>, <span class="json-key">"created"</span>: <span class="json-bool">true</span>, <span class="json-key">"id"</span>: <span class="json-num">500</span> }</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── sync/full ── -->
+  <div class="endpoint-card">
+    <div class="endpoint-header">
+      <span class="method-badge post">POST</span>
+      <span class="endpoint-url">/api/sync/full/</span>
+      <span class="endpoint-desc-badge">Sync complète</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="endpoint-description">
+        Reçoit un dump complet de toutes les données client et effectue un upsert massif.
+        Idéal pour la synchronisation initiale ou la resynchronisation périodique.
+      </p>
+      <p class="params-label">Corps de la requête (JSON)</p>
+      <table class="params-table">
+        <thead><tr><th>Champ</th><th>Type</th><th>Requis</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>users</code></td><td>array</td><td><span class="badge-opt">optionnel</span></td><td>Liste d'objets utilisateur (même format que <code>/api/sync/user/</code>).</td></tr>
+          <tr><td><code>tags</code></td><td>array</td><td><span class="badge-opt">optionnel</span></td><td>Liste d'objets tag.</td></tr>
+          <tr><td><code>articles</code></td><td>array</td><td><span class="badge-opt">optionnel</span></td><td>Liste d'objets article.</td></tr>
+          <tr><td><code>comments</code></td><td>array</td><td><span class="badge-opt">optionnel</span></td><td>Liste d'objets commentaire.</td></tr>
+          <tr><td><code>analytics</code></td><td>array</td><td><span class="badge-opt">optionnel</span></td><td>Liste d'objets analytics article.</td></tr>
+          <tr><td><code>events</code></td><td>array</td><td><span class="badge-opt">optionnel</span></td><td>Liste d'objets événement analytics.</td></tr>
+          <tr><td><code>action_logs</code></td><td>array</td><td><span class="badge-opt">optionnel</span></td><td>Liste d'objets journal d'action.</td></tr>
+        </tbody>
+      </table>
+      <p class="params-label">Exemple</p>
+      <div class="code-group">
+        <div class="code-group-tabs"><div class="code-tab active">JSON</div></div>
+        <pre class="code-block"><span class="json-comment">// POST /api/sync/full/</span>
+{
+  <span class="json-key">"users"</span>: [
+    { <span class="json-key">"client_id"</span>: <span class="json-num">1</span>, <span class="json-key">"username"</span>: <span class="json-str">"marie"</span>, <span class="json-key">"email"</span>: <span class="json-str">"marie@ex.com"</span> }
+  ],
+  <span class="json-key">"tags"</span>: [
+    { <span class="json-key">"client_id"</span>: <span class="json-num">3</span>, <span class="json-key">"name"</span>: <span class="json-str">"Pédagogie"</span>, <span class="json-key">"slug"</span>: <span class="json-str">"pedagogie"</span> }
+  ],
+  <span class="json-key">"articles"</span>: [
+    { <span class="json-key">"client_id"</span>: <span class="json-num">12</span>, <span class="json-key">"author_id"</span>: <span class="json-num">1</span>, <span class="json-key">"title"</span>: <span class="json-str">"Mon article"</span>, <span class="json-key">"status"</span>: <span class="json-str">"published"</span> }
+  ],
+  <span class="json-key">"comments"</span>: [],
+  <span class="json-key">"analytics"</span>: [],
+  <span class="json-key">"events"</span>: [],
+  <span class="json-key">"action_logs"</span>: []
+}</pre>
+      </div>
+      <p class="params-label" style="margin-top:20px">Réponses</p>
+      <div class="response-row">
+        <span class="response-status s200">200</span>
+        <div class="response-block">{ <span class="json-key">"ok"</span>: <span class="json-bool">true</span>, <span class="json-key">"synced"</span>: { <span class="json-key">"users"</span>: <span class="json-num">1</span>, <span class="json-key">"tags"</span>: <span class="json-num">1</span>, <span class="json-key">"articles"</span>: <span class="json-num">1</span>, <span class="json-key">"comments"</span>: <span class="json-num">0</span>, <span class="json-key">"analytics"</span>: <span class="json-num">0</span>, <span class="json-key">"events"</span>: <span class="json-num">0</span>, <span class="json-key">"action_logs"</span>: <span class="json-num">0</span> } }</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- Section: Pages du tableau de bord (GET) -->
+  <!-- ================================================================= -->
+  <p class="section-label" style="margin-top:52px">Pages</p>
+  <h2 class="section-title">Pages du tableau de bord <span style="font-weight:400;font-size:.85rem;color:var(--text-muted)">(authentification requise)</span></h2>
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:32px">
+    <table class="params-table" style="margin-bottom:0">
+      <thead>
+        <tr>
+          <th>Méthode</th>
+          <th>Route</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="method-badge get" style="font-size:.68rem">GET</span></td>
+          <td><code>/dashboard/</code></td>
+          <td>Tableau de bord principal avec KPIs, graphiques et filtres par période.</td>
+        </tr>
+        <tr>
+          <td><span class="method-badge get" style="font-size:.68rem">GET</span></td>
+          <td><code>/explorateur/</code></td>
+          <td>Explorateur interactif : filtres par date, auteur, catégorie, appareil.</td>
+        </tr>
+        <tr>
+          <td><span class="method-badge get" style="font-size:.68rem">GET</span></td>
+          <td><code>/tendances/</code></td>
+          <td>Analyse des tendances : rétention, appareils, navigateurs, impressions.</td>
+        </tr>
+        <tr>
+          <td><span class="method-badge get" style="font-size:.68rem">GET</span></td>
+          <td><code>/articles/</code></td>
+          <td>Liste de tous les articles synchronisés.</td>
+        </tr>
+        <tr>
+          <td><span class="method-badge get" style="font-size:.68rem">GET</span></td>
+          <td><code>/articles/&lt;id&gt;/</code></td>
+          <td>Détail d'un article : métriques, lectures sur 7 jours, structure.</td>
+        </tr>
+        <tr>
+          <td><span class="method-badge get" style="font-size:.68rem">GET</span></td>
+          <td><code>/auteurs/</code></td>
+          <td>Liste des auteurs avec statistiques de publication et lectures.</td>
+        </tr>
+        <tr>
+          <td><span class="method-badge get" style="font-size:.68rem">GET</span></td>
+          <td><code>/auteurs/&lt;id&gt;/</code></td>
+          <td>Détail d'un auteur : articles, lectures quotidiennes, répartition par section.</td>
+        </tr>
+        <tr>
+          <td><span class="method-badge get" style="font-size:.68rem">GET</span></td>
+          <td><code>/utilisateurs/</code></td>
+          <td>Activité des utilisateurs : inscriptions, actions quotidiennes.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
   <!-- Section: Authentification -->
   <p class="section-label mt-label" style="margin-top:52px">Sécurité</p>
   <h2 class="section-title">Authentification</h2>
 
   <div class="info-box">
-    <strong>Endpoints de collecte ouverts :</strong> les routes <code style="font-family:monospace">/api/analytics/</code>
-    et <code style="font-family:monospace">/api/action-log/</code> n'exigent pas de token pour permettre
-    l'envoi depuis le client sans friction. En production, il est conseillé de
-    les restreindre à votre IP cliente ou d'ajouter un en-tête
-    <code style="font-family:monospace">X-Api-Key</code> côté middleware.
+    <strong>Endpoints de collecte &amp; sync ouverts :</strong> les routes <code style="font-family:monospace">/api/analytics/</code>,
+    <code style="font-family:monospace">/api/action-log/</code> et <code style="font-family:monospace">/api/sync/*</code>
+    n'exigent pas de token pour permettre l'envoi depuis le client sans friction.
+    En production, il est conseillé de les restreindre à votre IP cliente ou
+    d'ajouter un en-tête <code style="font-family:monospace">X-Api-Key</code> côté middleware.
   </div>
   <div class="info-box" style="border-color: var(--accent); background: rgba(37,78,112,.06); margin-top: 12px;">
     <strong>Tableau de bord protégé :</strong> l'accès aux pages
@@ -620,8 +1131,9 @@ pre.code-block {
   <h2 class="section-title">Intégration depuis Django (client)</h2>
 
   <p style="font-size:.9rem;color:var(--text-muted);margin-bottom:18px;line-height:1.65">
-    Ajoutez ces constantes dans <code style="font-family:monospace">settings.py</code> de votre application cliente,
-    puis appelez les endpoints depuis vos signaux ou middlewares de tracking.
+    Le client utilise le module <code style="font-family:monospace">blog/sync.py</code> pour synchroniser
+    automatiquement chaque création/modification vers le serveur.
+    Ajoutez ces constantes dans <code style="font-family:monospace">settings.py</code>.
   </p>
   <div class="code-group">
     <div class="code-group-tabs">
@@ -629,30 +1141,68 @@ pre.code-block {
     </div>
     <pre class="code-block"><span class="json-comment"># Client_blog_post/Client_blog_post/settings.py</span>
 
-ANALYTICS_SERVER_URL = <span class="json-str">"http://127.0.0.1:8001"</span>
-ANALYTICS_ENDPOINT   = ANALYTICS_SERVER_URL + <span class="json-str">"/api/analytics/"</span>
-ACTION_LOG_ENDPOINT  = ANALYTICS_SERVER_URL + <span class="json-str">"/api/action-log/"</span></pre>
+SERVER_BASE_URL = <span class="json-str">"http://127.0.0.1:8001"</span>
+
+<span class="json-comment"># Legacy endpoints</span>
+ANALYTICS_ENDPOINT   = SERVER_BASE_URL + <span class="json-str">"/api/analytics/"</span>
+ACTION_LOG_ENDPOINT  = SERVER_BASE_URL + <span class="json-str">"/api/action-log/"</span>
+
+<span class="json-comment"># Sync endpoints (utilisés par blog/sync.py)</span>
+<span class="json-comment"># /api/sync/user/  /api/sync/tag/  /api/sync/article/</span>
+<span class="json-comment"># /api/sync/comment/ /api/sync/analytics/ /api/sync/event/</span>
+<span class="json-comment"># /api/sync/action-log/ /api/sync/full/</span></pre>
   </div>
 
   <div class="code-group" style="margin-top:20px">
     <div class="code-group-tabs">
-      <div class="code-tab active">Python — envoi</div>
+      <div class="code-tab active">blog/sync.py — exemple</div>
     </div>
-    <pre class="code-block"><span class="json-comment">import requests
+    <pre class="code-block"><span class="json-comment">import json, urllib.request
 from django.conf import settings</span>
 
-<span class="json-key">def</span> push_action_log(action, article_id=<span class="json-null">None</span>, request=<span class="json-null">None</span>):
+SERVER = getattr(settings, <span class="json-str">'SERVER_BASE_URL'</span>, <span class="json-str">'http://localhost:8001'</span>)
+
+<span class="json-key">def</span> sync_user(user):
+    <span class="json-str">"""Envoie un utilisateur vers /api/sync/user/ (fire-and-forget)."""</span>
     payload = {
-        <span class="json-str">"action"</span>: action,
-        <span class="json-str">"actor_type"</span>: <span class="json-str">"anonymous"</span>,
-        <span class="json-str">"article_id"</span>: article_id,
-        <span class="json-str">"request_path"</span>: request.path <span class="json-key">if</span> request <span class="json-key">else</span> <span class="json-str">""</span>,
-        <span class="json-str">"user_agent"</span>: request.META.get(<span class="json-str">"HTTP_USER_AGENT"</span>, <span class="json-str">""</span>) <span class="json-key">if</span> request <span class="json-key">else</span> <span class="json-str">""</span>,
+        <span class="json-str">"client_id"</span>: user.pk,
+        <span class="json-str">"username"</span>: user.username,
+        <span class="json-str">"email"</span>: user.email,
+        <span class="json-str">"first_name"</span>: user.first_name,
+        <span class="json-str">"last_name"</span>: user.last_name,
     }
     <span class="json-key">try</span>:
-        requests.post(settings.ACTION_LOG_ENDPOINT, json=payload, timeout=2)
-    <span class="json-key">except</span> requests.exceptions.RequestException:
-        <span class="json-key">pass  </span><span class="json-comment"># ne jamais bloquer la réponse principale</span></pre>
+        req = urllib.request.Request(
+            f<span class="json-str">"{SERVER}/api/sync/user/"</span>,
+            data=json.dumps(payload).encode(),
+            headers={<span class="json-str">"Content-Type"</span>: <span class="json-str">"application/json"</span>},
+        )
+        urllib.request.urlopen(req, timeout=<span class="json-num">3</span>)
+    <span class="json-key">except</span> Exception:
+        <span class="json-key">pass  </span><span class="json-comment"># ne jamais bloquer la réponse principale</span>
+
+<span class="json-key">def</span> full_sync():
+    <span class="json-str">"""Sync complète via /api/sync/full/ — utilisé par manage.py full_sync."""</span>
+    <span class="json-comment"># Collecte toutes les données et POST en un seul appel</span>
+    ...</pre>
+  </div>
+
+  <div class="code-group" style="margin-top:20px">
+    <div class="code-group-tabs">
+      <div class="code-tab active">PowerShell — test rapide</div>
+    </div>
+    <pre class="code-block"><span class="json-comment"># Test sync user</span>
+Invoke-RestMethod -Uri http://localhost:8001/api/sync/user/ `
+  -Method POST -ContentType "application/json" `
+  -Body '{"client_id":1,"username":"test_user","email":"test@ex.com"}'
+
+<span class="json-comment"># Test sync full</span>
+Invoke-RestMethod -Uri http://localhost:8001/api/sync/full/ `
+  -Method POST -ContentType "application/json" `
+  -Body '{"users":[],"tags":[],"articles":[],"comments":[],"analytics":[],"events":[],"action_logs":[]}'
+
+<span class="json-comment"># Management command (depuis le client)</span>
+python manage.py full_sync</pre>
   </div>
 
 </div>
@@ -660,7 +1210,7 @@ from django.conf import settings</span>
 <!-- Footer -->
 <footer class="docs-footer">
   <p>
-    Digital Scholar Analytics Server &mdash; API v1.0 &nbsp;|&nbsp;
+    Digital Scholar Analytics Server &mdash; API v2.0 &nbsp;|&nbsp;
     <a href="{% url 'login' %}">Accéder au tableau de bord</a>
   </p>
 </footer>

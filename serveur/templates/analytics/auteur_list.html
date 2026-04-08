@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Auteurs – Digital Scholar{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
+{% endblock %}
+
+{% block content %}
+<h1 class="dash-title">Auteurs</h1>
+
+<div class="card table-card">
+  <table class="dash-table">
+    <thead>
+      <tr>
+        <th>Auteur</th>
+        <th>Articles</th>
+        <th>Publiés</th>
+        <th>Lectures</th>
+        <th>Commentaires</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in authors %}
+      <tr>
+        <td class="td-title">{{ a.display_name }}</td>
+        <td>{{ a.article_count }}</td>
+        <td>{{ a.published_count }}</td>
+        <td>{{ a.total_reads }}</td>
+        <td>{{ a.total_comments }}</td>
+        <td><a href="{% url 'analytics:auteur_detail' a.id %}" class="btn-link">Détails</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="muted">Aucun auteur.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

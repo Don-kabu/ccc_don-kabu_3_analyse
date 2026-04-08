@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Utilisateurs – Digital Scholar{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
+{% endblock %}
+
+{% block content %}
+<h1 class="dash-title">Activité des utilisateurs</h1>
+
+<!-- KPI -->
+<div class="kpi-grid-4">
+  <div class="kpi-box">
+    <div class="kpi-box-label">Utilisateurs totaux</div>
+    <div class="kpi-box-value">{{ total_users }}</div>
+  </div>
+  <div class="kpi-box">
+    <div class="kpi-box-label">Auteurs actifs</div>
+    <div class="kpi-box-value">{{ active_users }}</div>
+  </div>
+  <div class="kpi-box">
+    <div class="kpi-box-label">Taux d'activité</div>
+    <div class="kpi-box-value">{% if total_users %}{{ active_users|floatformat:0 }}{% else %}0{% endif %} / {{ total_users }}</div>
+  </div>
+  <div class="kpi-box">
+    <div class="kpi-box-label">Inactifs</div>
+    <div class="kpi-box-value">{{ total_users|add:"-"|add:active_users }}</div>
+  </div>
+</div>
+
+<!-- Activity chart -->
+<div class="card">
+  <div class="card-title">Actions utilisateurs <span class="card-badge">30 derniers jours</span></div>
+  <canvas id="actionsChart" height="140"></canvas>
+</div>
+
+<!-- Users table -->
+<div class="card table-card">
+  <table class="dash-table">
+    <thead>
+      <tr>
+        <th>Utilisateur</th>
+        <th>Email</th>
+        <th>Inscrit le</th>
+        <th>Dernière activité</th>
+        <th>Articles</th>
+        <th>Publiés</th>
+        <th>Lectures reçues</th>
+        <th>Commentaires</th>
+        <th>Partages</th>
+        <th>Statut</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td class="td-title">
+          <a href="{% url 'analytics:auteur_detail' u.id %}">{{ u.display_name }}</a>
+        </td>
+        <td>{{ u.email|default:"—" }}</td>
+        <td>{{ u.date_joined|date:"d/m/Y" }}</td>
+        <td>{% if u.last_activity %}{{ u.last_activity|date:"d/m/Y H:i" }}{% else %}—{% endif %}</td>
+        <td>{{ u.article_count }}</td>
+        <td>{{ u.published_count }}</td>
+        <td>{{ u.total_reads }}</td>
+        <td>{{ u.comment_count }}</td>
+        <td>{{ u.total_shares }}</td>
+        <td>
+          {% if u.is_active %}
+          <span class="status-chip published">Actif</span>
+          {% else %}
+          <span class="status-chip draft">Inactif</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="10" class="muted">Aucun utilisateur.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+const actionsDaily = {{ actions_daily_json|safe }};
+const BROWN = '#c07a50';
+const BROWN_LIGHT = 'rgba(192,122,80,.15)';
+
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.plugins.legend.display = false;
+
+function shortLabels(data) {
+  return data.map(d => { const p = d.date.split('-'); return p[2]+'/'+p[1]; });
+}
+
+new Chart(document.getElementById('actionsChart'), {
+  type: 'line',
+  data: {
+    labels: shortLabels(actionsDaily),
+    datasets: [{
+      data: actionsDaily.map(d => d.count),
+      borderColor: BROWN,
+      backgroundColor: BROWN_LIGHT,
+      borderWidth: 2, pointRadius: 2, tension: .35, fill: true
+    }]
+  },
+  options: { scales: { x: { grid:{display:false}, ticks:{maxTicksLimit:15} }, y: { beginAtZero:true } } }
+});
+</script>
+{% endblock %}

@@ -1,114 +1,436 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% load static %}
 
-{% block title %}Tableau de bord – Digital Scholar{% endblock %}
+{% block title %}Dashboard – Digital Scholar{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
+{% endblock %}
 
 {% block content %}
-<div class="page-label">Tableau de bord</div>
-<h1 class="page-title">Bonjour, Archiviste.</h1>
-<p class="page-subtitle">Consultez l'état actuel de votre écosystème pédagogique et les<br>performances de vos ressources.</p>
+<h1 class="dash-title">Dashboard auteur</h1>
 
-<!-- KPI row -->
-<div class="kpi-row">
-  <div class="kpi-card">
-    <div class="kpi-icon">
-      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+<!-- ═══════════ TIME PERIOD FILTER ═══════════ -->
+<div class="card" style="margin-bottom:1.5rem">
+  <div class="card-title">Filtrer par période</div>
+  <form method="get" style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:end">
+    <div>
+      <label style="font-size:.8rem;font-weight:600">Type</label>
+      <select name="period_type" style="padding:.4rem .6rem;border:1px solid #d5cfc9;border-radius:6px;font-size:.85rem">
+        <option value="">— Tout —</option>
+        <option value="day" {% if period_type == 'day' %}selected{% endif %}>Jour</option>
+        <option value="week" {% if period_type == 'week' %}selected{% endif %}>Semaine</option>
+        <option value="month" {% if period_type == 'month' %}selected{% endif %}>Mois</option>
+        <option value="year" {% if period_type == 'year' %}selected{% endif %}>Année</option>
+      </select>
     </div>
     <div>
-      <div class="kpi-value">{{ total_articles }}</div>
-      <div class="kpi-label">Articles suivis</div>
+      <label style="font-size:.8rem;font-weight:600">Valeur</label>
+      <input name="period_value" value="{{ period_value }}" placeholder="ex: 2026-04-10, 2026-04, 2026" style="padding:.4rem .6rem;border:1px solid #d5cfc9;border-radius:6px;font-size:.85rem;width:180px" />
     </div>
-  </div>
-  <div class="kpi-card">
-    <div class="kpi-icon">
-      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-    </div>
-    <div>
-      <div class="kpi-value">{{ total_teachers }}</div>
-      <div class="kpi-label">Enseignants</div>
-    </div>
-  </div>
+    <button type="submit" style="padding:.4rem 1.2rem;background:#c07a50;color:#fff;border:none;border-radius:6px;font-size:.85rem;cursor:pointer">Appliquer</button>
+    {% if period_type %}<a href="{% url 'analytics:dashboard' %}" style="font-size:.82rem;color:#c07a50">Réinitialiser</a>{% endif %}
+  </form>
 </div>
 
-<!-- Teacher of the week -->
-<div class="teacher-week">
-  <div class="week-label">Distinction hebdomadaire</div>
-  {% if top_teacher %}
-    <div class="avatar-lg">{{ top_teacher.display_name|slice:":1"|upper }}</div>
-    <div class="teacher-name">Enseignant de la Semaine : {{ top_teacher.display_name }}</div>
-    <div class="teacher-quote">"La pédagogie n'est pas de remplir des vases,<br>mais d'allumer des feux."</div>
-    <a href="#" class="btn-profile">Voir le profil complet</a>
-  {% else %}
-    <div class="teacher-name" style="color:var(--text-muted);margin-top:20px;">Aucune donnée disponible cette semaine.</div>
+{% if period_data %}
+<!-- ═══════════ PERIOD-FILTERED KPIs ═══════════ -->
+<div class="card" style="margin-bottom:1.5rem;border-left:4px solid #c07a50">
+  <div class="card-title">Période : {{ period_data.start }} → {{ period_data.end }}</div>
+  <div class="kpi-grid-4" style="margin-top:.5rem">
+    <div class="kpi-box">
+      <div class="kpi-box-label">Vues</div>
+      <div class="kpi-box-value">{{ period_data.total_views }}</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-box-label">Partages</div>
+      <div class="kpi-box-value">{{ period_data.total_shares }}</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-box-label">Commentaires</div>
+      <div class="kpi-box-value">{{ period_data.total_comments }}</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-box-label">Nouveaux articles</div>
+      <div class="kpi-box-value">{{ period_data.new_articles }}</div>
+    </div>
+  </div>
+  <div class="grid-2" style="margin-top:1rem">
+    <div>
+      <div class="card-title">Vues (période)</div>
+      <canvas id="periodViewsChart" height="120"></canvas>
+    </div>
+    <div>
+      <div class="card-title">Commentaires (période)</div>
+      <canvas id="periodCommentsChart" height="120"></canvas>
+    </div>
+  </div>
+  {% if period_data.top_articles %}
+  <div style="margin-top:1rem">
+    <div class="card-title">Top articles (période)</div>
+    {% for a in period_data.top_articles %}
+    <div class="top-row">
+      <span class="top-rank">{{ forloop.counter }}</span>
+      <span class="top-name">{{ a.article__title }}</span>
+      <span class="top-val">{{ a.cnt }} <small>vues</small></span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% if period_data.top_authors %}
+  <div style="margin-top:1rem">
+    <div class="card-title">Top auteurs (période)</div>
+    {% for a in period_data.top_authors %}
+    <div class="top-row">
+      <span class="top-rank">{{ forloop.counter }}</span>
+      <span class="top-name">{{ a.display_name }}</span>
+      <span class="top-val">{{ a.cnt }} <small>vues</small></span>
+    </div>
+    {% endfor %}
+  </div>
   {% endif %}
 </div>
+{% endif %}
 
-<!-- Consultation trend chart -->
-<div class="chart-card">
-  <div class="chart-header">
-    <span class="chart-title">Tendance de Consultation</span>
-    {% if pct_change >= 0 %}
-      <span class="badge-positive">+{{ pct_change }}% ce mois</span>
+<!-- ═══════════ KPI CARDS ═══════════ -->
+<div class="kpi-grid-4">
+  <div class="kpi-box">
+    <div class="kpi-box-label">Lectures totales</div>
+    <div class="kpi-box-value">{{ total_reads }}</div>
+  </div>
+  <div class="kpi-box">
+    <div class="kpi-box-label">Temps moyen par lecture</div>
+    <div class="kpi-box-value">{{ avg_read_time }} sec</div>
+  </div>
+  <div class="kpi-box">
+    <div class="kpi-box-label">Commentaires totaux</div>
+    <div class="kpi-box-value">{{ total_comments }}</div>
+  </div>
+  <div class="kpi-box">
+    <div class="kpi-box-label">Partages totaux</div>
+    <div class="kpi-box-value">{{ total_shares }}</div>
+  </div>
+</div>
+
+<!-- ═══════════ ANALYTICS TRACKING + CATEGORIES ═══════════ -->
+<div class="grid-2">
+  <div class="card">
+    <div class="card-title">Suivi analytique</div>
+    <div class="donut-wrap">
+      <canvas id="analyticsDonut" width="180" height="180"></canvas>
+      <div class="donut-center">
+        <span class="donut-number">{{ analytics_stats.total }}</span>
+        <span class="donut-sub">articles</span>
+      </div>
+    </div>
+    <div class="donut-legend">
+      <div class="legend-item"><span class="dot" style="background:#e07a5f"></span> Analysés <strong>{{ analytics_stats.analyzed_pct }} %</strong></div>
+      <div class="legend-item"><span class="dot" style="background:#ddd"></span> Non analysés <strong>{{ analytics_stats.not_analyzed_pct }} %</strong></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Répartition par catégorie</div>
+    <div class="donut-wrap">
+      <canvas id="categoryDonut" width="180" height="180"></canvas>
+      <div class="donut-center">
+        <span class="donut-number">{{ category_dist|length }}</span>
+        <span class="donut-sub">catégories</span>
+      </div>
+    </div>
+    <div class="category-legend" id="categoryLegend"></div>
+  </div>
+</div>
+
+<!-- ═══════════ ARTICLES PUBLIÉS + COMMENTAIRES ═══════════ -->
+<div class="grid-2">
+  <div class="card">
+    <div class="card-title">Articles publiés <span class="card-badge">30 derniers jours</span></div>
+    <canvas id="articlesChart" height="160"></canvas>
+  </div>
+  <div class="card">
+    <div class="card-title">Commentaires <span class="card-badge">30 derniers jours</span></div>
+    <canvas id="commentsChart" height="160"></canvas>
+  </div>
+</div>
+
+<!-- ═══════════ VISITES D'ARTICLES ═══════════ -->
+<div class="card">
+  <div class="card-title">Visites d'articles <span class="card-badge">30 derniers jours</span></div>
+  <canvas id="visitsChart" height="140"></canvas>
+</div>
+
+<!-- ═══════════ INSCRIPTIONS ═══════════ -->
+<div class="card">
+  <div class="card-title">Inscriptions <span class="card-badge">30 derniers jours</span></div>
+  <canvas id="registrationsChart" height="140"></canvas>
+</div>
+
+<!-- ═══════════ OS + NAVIGATEURS + APPAREILS ═══════════ -->
+<div class="grid-3">
+  <div class="card">
+    <div class="card-title">Systèmes d'exploitation <span class="card-badge">30j</span></div>
+    <canvas id="osChart" height="180"></canvas>
+  </div>
+  <div class="card">
+    <div class="card-title">Navigateurs <span class="card-badge">30j</span></div>
+    <canvas id="browserChart" height="180"></canvas>
+  </div>
+  <div class="card">
+    <div class="card-title">Type d'appareil <span class="card-badge">30j</span></div>
+    <canvas id="deviceChart" height="180"></canvas>
+  </div>
+</div>
+
+<!-- ═══════════ APERÇU COMMENTAIRES ═══════════ -->
+<h2 class="section-title">Aperçu des commentaires</h2>
+<div class="grid-2">
+  <div class="card">
+    <div class="card-label">Total commentaires</div>
+    <div class="card-big-value">{{ comment_overview.total }}</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Commentaire le plus répondu</div>
+    {% if comment_overview.most_replied %}
+    <div class="card-big-value">{{ comment_overview.most_replied.reply_count }} réponses</div>
+    <div class="card-sub">par {{ comment_overview.most_replied.name }} sur <a href="#">{{ comment_overview.most_replied.article_title }}</a></div>
     {% else %}
-      <span class="badge-negative">{{ pct_change }}% ce mois</span>
+    <div class="card-sub">Aucune réponse</div>
     {% endif %}
   </div>
-  <canvas id="trendChart" height="90"></canvas>
 </div>
 
-<!-- Top articles -->
-<div class="article-list">
-  <h2>Articles les plus performants</h2>
-  {% for article in top_articles %}
-  <div class="article-row">
-    <div class="art-icon">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+<div class="grid-2">
+  <div class="card">
+    <div class="card-title">Articles les plus commentés</div>
+    {% for item in comment_overview.top_commented %}
+    <div class="comment-row">
+      <span class="comment-article-title">{{ item.title }}</span>
+      <span class="comment-badge">{{ item.comment_count }}</span>
     </div>
-    <div class="art-info">
-      <a href="{% url 'analytics:article_detail' article.id %}">
-        <div class="art-title">{{ article.title }}</div>
-      </a>
-      <div class="art-date">Publié le {{ article.published_at|date:"j N"|default:"—" }}</div>
-    </div>
-    <div>
-      <div class="art-reads">{{ article.total_reads }}</div>
-      <div class="art-reads-label">Vues</div>
-    </div>
+    {% empty %}
+    <div class="muted">Aucun commentaire.</div>
+    {% endfor %}
   </div>
-  {% empty %}
-  <p style="color:var(--text-muted);padding:20px 0;">Aucun article suivi pour le moment.</p>
-  {% endfor %}
+  <div class="card">
+    <div class="card-title">Commentaires récents</div>
+    {% for c in comment_overview.recent_comments %}
+    <div class="recent-comment">
+      <div class="rc-header"><strong>{{ c.name }}</strong> <span class="rc-meta">— sur <a href="#">{{ c.article_title }}</a></span></div>
+      <div class="rc-body">{{ c.message|truncatechars:80 }}</div>
+    </div>
+    {% empty %}
+    <div class="muted">Aucun commentaire récent.</div>
+    {% endfor %}
+  </div>
 </div>
+
+<!-- ═══════════ TOP ARTICLES ═══════════ -->
+<h2 class="section-title">Top des articles</h2>
+<div class="grid-3">
+  <div class="card">
+    <div class="card-title">🏆 Plus lus</div>
+    {% for a in top_most_read %}
+    <div class="top-row">
+      <span class="top-rank">{{ forloop.counter }}</span>
+      <span class="top-name">{{ a.title }}</span>
+      <span class="top-val">{{ a.total_reads }} <small>lectures</small></span>
+    </div>
+    {% empty %}
+    <div class="muted">—</div>
+    {% endfor %}
+  </div>
+  <div class="card">
+    <div class="card-title">💬 Plus commentés</div>
+    {% for a in top_most_commented %}
+    <div class="top-row">
+      <span class="top-rank">{{ forloop.counter }}</span>
+      <span class="top-name">{{ a.title }}</span>
+      <span class="top-val">{{ a.comment_count }} <small>commentaires</small></span>
+    </div>
+    {% empty %}
+    <div class="muted">—</div>
+    {% endfor %}
+  </div>
+  <div class="card">
+    <div class="card-title">🔗 Plus partagés</div>
+    {% for a in top_most_shared %}
+    <div class="top-row">
+      <span class="top-rank">{{ forloop.counter }}</span>
+      <span class="top-name">{{ a.title }}</span>
+      <span class="top-val">{{ a.share_count }} <small>partages</small></span>
+    </div>
+    {% empty %}
+    <div class="muted">—</div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ═══════════ TABLE ARTICLES ═══════════ -->
+<h2 class="section-title">Tous les articles</h2>
+<div class="card table-card">
+  <table class="dash-table">
+    <thead>
+      <tr>
+        <th>Titre</th>
+        <th>Catégorie</th>
+        <th>Statut</th>
+        <th>Date de création</th>
+        <th>Mise à jour</th>
+        <th>Lectures</th>
+        <th>Commentaires</th>
+        <th>Partages</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in all_articles %}
+      <tr>
+        <td class="td-title">{{ a.title }}</td>
+        <td><span class="cat-chip">{{ a.category_label }}</span></td>
+        <td>
+          {% if a.status == 'published' %}
+          <span class="status-chip published">Publié</span>
+          {% else %}
+          <span class="status-chip draft">Brouillon</span>
+          {% endif %}
+        </td>
+        <td>{{ a.created_at|truncatechars:10 }}</td>
+        <td>{{ a.updated_at|truncatechars:10 }}</td>
+        <td>{{ a.total_reads }}</td>
+        <td>{{ a.comment_count }}</td>
+        <td>{{ a.share_count }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" class="muted">Aucun article.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script>
-const months = {{ months_fr|safe }};
-const reads  = {{ monthly_reads }};
+const analyticsStats = {{ analytics_stats_json|safe }};
+const categoryDist   = {{ category_dist_json|safe }};
+const articlesDaily  = {{ articles_daily_json|safe }};
+const commentsDaily  = {{ comments_daily_json|safe }};
+const visitsDaily    = {{ visits_daily_json|safe }};
+const osData         = {{ os_data_json|safe }};
+const browserData    = {{ browser_data_json|safe }};
+const deviceData     = {{ device_data_json|safe }};
+const registrations  = {{ registrations_daily_json|safe }};
 
-new Chart(document.getElementById('trendChart'), {
-  type: 'line',
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.plugins.legend.display = false;
+const BROWN = '#c07a50';
+const BROWN_LIGHT = 'rgba(192,122,80,.15)';
+const COLORS = ['#e07a5f','#3d405b','#81b29a','#f2cc8f','#264653','#2a9d8f','#e9c46a','#f4a261','#e76f51','#606c38'];
+
+// Analytics donut
+new Chart(document.getElementById('analyticsDonut'), {
+  type: 'doughnut',
   data: {
-    labels: months,
+    labels: ['Analysés', 'Non analysés'],
     datasets: [{
-      data: reads,
-      borderColor: '#254e70',
-      backgroundColor: 'rgba(37,78,112,.08)',
-      borderWidth: 2,
-      pointRadius: 3,
-      pointBackgroundColor: '#254e70',
-      tension: 0.4,
-      fill: true,
+      data: [analyticsStats.analyzed, analyticsStats.not_analyzed],
+      backgroundColor: ['#e07a5f', '#e8e0d8'],
+      borderWidth: 0,
     }]
   },
-  options: {
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { grid: { display: false }, ticks: { color: '#6b7a8d', font: { size: 11 } } },
-      y: { grid: { color: '#e2e5e9' }, ticks: { color: '#6b7a8d', font: { size: 11 } }, beginAtZero: true }
-    },
-  }
+  options: { cutout: '72%', plugins: { legend: { display: false } } }
 });
+
+// Category donut
+new Chart(document.getElementById('categoryDonut'), {
+  type: 'doughnut',
+  data: {
+    labels: categoryDist.map(c => c.category),
+    datasets: [{
+      data: categoryDist.map(c => c.count),
+      backgroundColor: categoryDist.map(c => c.color),
+      borderWidth: 0,
+    }]
+  },
+  options: { cutout: '72%', plugins: { legend: { display: false } } }
+});
+const legendEl = document.getElementById('categoryLegend');
+categoryDist.forEach(c => {
+  legendEl.innerHTML += '<div class="legend-item"><span class="dot" style="background:'+c.color+'"></span>'+c.category.substring(0,14)+'… <strong>'+c.pct+' %</strong></div>';
+});
+
+function shortLabels(data) {
+  return data.map(d => { const p = d.date.split('-'); return p[2]+'/'+p[1]; });
+}
+
+// Articles published
+new Chart(document.getElementById('articlesChart'), {
+  type: 'bar',
+  data: { labels: shortLabels(articlesDaily), datasets: [{ data: articlesDaily.map(d=>d.count), backgroundColor: BROWN, borderRadius: 3 }] },
+  options: { scales: { x: { grid:{display:false}, ticks:{maxTicksLimit:10} }, y: { beginAtZero:true, ticks:{stepSize:1} } } }
+});
+
+// Comments
+new Chart(document.getElementById('commentsChart'), {
+  type: 'bar',
+  data: { labels: shortLabels(commentsDaily), datasets: [{ data: commentsDaily.map(d=>d.count), backgroundColor: '#81b29a', borderRadius: 3 }] },
+  options: { scales: { x: { grid:{display:false}, ticks:{maxTicksLimit:10} }, y: { beginAtZero:true, ticks:{stepSize:1} } } }
+});
+
+// Visits
+new Chart(document.getElementById('visitsChart'), {
+  type: 'line',
+  data: { labels: shortLabels(visitsDaily), datasets: [{ data: visitsDaily.map(d=>d.count), borderColor: BROWN, backgroundColor: BROWN_LIGHT, borderWidth:2, pointRadius:2, tension:.35, fill:true }] },
+  options: { scales: { x: { grid:{display:false}, ticks:{maxTicksLimit:15} }, y: { beginAtZero:true } } }
+});
+
+// Registrations
+new Chart(document.getElementById('registrationsChart'), {
+  type: 'line',
+  data: { labels: shortLabels(registrations), datasets: [{ data: registrations.map(d=>d.count), borderColor: '#3d405b', backgroundColor: 'rgba(61,64,91,.12)', borderWidth:2, pointRadius:2, tension:.35, fill:true }] },
+  options: { scales: { x: { grid:{display:false}, ticks:{maxTicksLimit:15} }, y: { beginAtZero:true, ticks:{stepSize:1} } } }
+});
+
+// OS
+new Chart(document.getElementById('osChart'), {
+  type: 'bar',
+  data: { labels: osData.map(d=>d.label), datasets: [{ data: osData.map(d=>d.count), backgroundColor: COLORS.slice(0,osData.length), borderRadius:3 }] },
+  options: { scales: { x: { grid:{display:false} }, y: { beginAtZero:true } } }
+});
+
+// Browsers
+new Chart(document.getElementById('browserChart'), {
+  type: 'bar',
+  data: { labels: browserData.map(d=>d.label), datasets: [{ data: browserData.map(d=>d.count), backgroundColor: COLORS.slice(0,browserData.length), borderRadius:3 }] },
+  options: { scales: { x: { grid:{display:false} }, y: { beginAtZero:true } } }
+});
+
+// Devices
+new Chart(document.getElementById('deviceChart'), {
+  type: 'bar',
+  data: { labels: deviceData.map(d=>d.label), datasets: [{ data: deviceData.map(d=>d.count), backgroundColor: COLORS.slice(0,deviceData.length), borderRadius:3 }] },
+  options: { scales: { x: { grid:{display:false} }, y: { beginAtZero:true } } }
+});
+
+// ═══════════ Period charts (only rendered when period_data is present) ═══════════
+{% if period_data %}
+(function(){
+  const pLabels = {{ period_data.daily_labels|safe }};
+  const pViews  = {{ period_data.daily_views|safe }};
+  const pComments = {{ period_data.daily_comments|safe }};
+
+  new Chart(document.getElementById('periodViewsChart'), {
+    type:'line',
+    data:{ labels:pLabels, datasets:[{ label:'Vues', data:pViews, borderColor:'#c07a50', backgroundColor:'rgba(192,122,80,.15)', fill:true, tension:.3 }] },
+    options:{ scales:{ x:{grid:{display:false}}, y:{beginAtZero:true} } }
+  });
+  new Chart(document.getElementById('periodCommentsChart'), {
+    type:'line',
+    data:{ labels:pLabels, datasets:[{ label:'Commentaires', data:pComments, borderColor:'#6b8f71', backgroundColor:'rgba(107,143,113,.15)', fill:true, tension:.3 }] },
+    options:{ scales:{ x:{grid:{display:false}}, y:{beginAtZero:true} } }
+  });
+})();
+{% endif %}
 </script>
 {% endblock %}

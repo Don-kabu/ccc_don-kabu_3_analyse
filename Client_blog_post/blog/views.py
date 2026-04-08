@@ -18,6 +18,7 @@ from django.views.decorators.http import require_POST
 
 from .forms import ArticleForm, AuthorSignupForm, ReaderCommentForm
 from .models import ActionLog, AnalyticsEvent, Article, ArticleAnalytics, ReaderComment
+from . import sync as server_sync
 
 
 def custom_404(request, exception=None):
@@ -107,6 +108,8 @@ def _log_action(request, action, article=None, payload=None, user=None):
 		log.last_delivery_error = 'analytics disabled for this article'
 	log.save(update_fields=['delivery_attempts', 'delivery_status', 'sent_at', 'last_delivery_error'])
 
+	server_sync.sync_action_log(log)
+
 	return log
 
 
@@ -135,6 +138,7 @@ def signup(request):
 		if form.is_valid():
 			user = form.save()
 			login(request, user)
+			server_sync.sync_user(user)
 			_log_action(request, 'author_signup', user=user, payload={'username': user.username})
 			messages.success(request, 'Votre compte auteur a ete cree avec succes.')
 			return redirect('blog:author_dashboard')
@@ -234,6 +238,7 @@ def article_detail(request, slug):
 				except (ReaderComment.DoesNotExist, ValueError):
 					pass
 			comment.save()
+			server_sync.sync_comment(comment)
 			_log_action(
 				request,
 				'reader_comment_created',
@@ -535,6 +540,7 @@ def article_create(request):
 			article.save()
 			form.instance = article
 			form.save()
+			server_sync.sync_article(article)
 			_log_action(request, 'article_created', article=article, payload={'status': article.status, 'title': article.title})
 			messages.success(request, 'Article enregistre avec succes.')
 			return redirect('blog:author_dashboard')
@@ -559,6 +565,7 @@ def article_edit(request, slug):
 			article.save()
 			form.instance = article
 			form.save()
+			server_sync.sync_article(article)
 			_log_action(request, 'article_updated', article=article, payload={'status': article.status, 'title': article.title})
 			messages.success(request, 'Article modifie avec succes.')
 			return redirect('blog:author_dashboard')
@@ -573,7 +580,9 @@ def article_delete(request, slug):
 	article = get_object_or_404(Article, slug=slug, author=request.user)
 	if request.method == 'POST':
 		deleted_payload = {'title': article.title, 'slug': article.slug}
+		article_id = article.pk
 		article.delete()
+		server_sync.sync_article_delete(article_id)
 		_log_action(request, 'article_deleted', payload=deleted_payload)
 		messages.success(request, 'Article supprime.')
 		return redirect('blog:author_dashboard')
@@ -620,6 +629,11 @@ def track_analytics(request):
 		analytics.resources_seconds += duration_seconds
 
 	analytics.save()
+	server_sync.sync_article_analytics(analytics)
+	# Also sync the event we just created
+	last_event = AnalyticsEvent.objects.filter(article=article).order_by('-id').first()
+	if last_event:
+		server_sync.sync_analytics_event(last_event)
 	_log_action(
 		request,
 		'analytics_tracked',

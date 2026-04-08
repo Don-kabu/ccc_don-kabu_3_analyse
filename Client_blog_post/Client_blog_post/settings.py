@@ -125,8 +125,10 @@ MEDIA_ROOT = BASE_DIR / 'media'
 LOGIN_REDIRECT_URL = 'blog:author_dashboard'
 LOGOUT_REDIRECT_URL = 'blog:home'
 
-ANALYTICS_ENDPOINT = os.getenv('ANALYTICS_ENDPOINT', 'https://analytics.example.com/track')
+ANALYTICS_ENDPOINT = os.getenv('ANALYTICS_ENDPOINT', 'https://localhost:5000/track/')
 ACTION_LOG_ENDPOINT = os.getenv('ACTION_LOG_ENDPOINT', ANALYTICS_ENDPOINT)
+SERVER_BASE_URL = os.getenv('SERVER_BASE_URL', 'http://localhost:5000')
+
 
 # Prevent RequestDataTooBig for rich article bodies while keeping a sane limit.
 DATA_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024
