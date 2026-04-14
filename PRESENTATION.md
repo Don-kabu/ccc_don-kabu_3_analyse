@@ -1,714 +1,407 @@
-# 🎓 Digital Scholar — Présentation Globale du Système
+# Digital Scholar — Présentation Globale du Système
 
 > **Plateforme pédagogique intégrée** — Un système complet de publication, de suivi analytique et de gestion d'articles éducatifs pour enfants.
 
-![Status](https://img.shields.io/badge/status-In%20Development-yellow) ![Python](https://img.shields.io/badge/Python-3.14+-blue) ![Django](https://img.shields.io/badge/Django-6.0.3-darkgreen) ![License](https://img.shields.io/badge/License-MIT-green)
+![Python](https://img.shields.io/badge/Python-3.14+-blue) ![Django](https://img.shields.io/badge/Django-6.0.3-darkgreen)
 
 ---
 
-## 📑 Table des matières
+## Table des matières
 
-1. [Aperçu visuel](#aperçu-visuel)
-2. [Vue d'ensemble](#vue-densemble)
-3. [Architecture globale](#architecture-globale)
-4. [Composants du système](#composants-du-système)
+1. [Vue d'ensemble](#vue-densemble)
+2. [Captures d'écran — Client](#captures-décran--client-edutrack)
+3. [Captures d'écran — Serveur](#captures-décran--serveur-digital-scholar)
+4. [Architecture globale](#architecture-globale)
 5. [Stack technologique](#stack-technologique)
-6. [Flux de données](#flux-de-données)
-7. [Guide complet de navigation](#guide-complet-de-navigation)
-8. [Guide de démarrage](#guide-de-démarrage)
-9. [Support et documentation](#support-et-documentation)
+6. [Guide de démarrage](#guide-de-démarrage)
+7. [Référence des pages et endpoints](#référence-des-pages-et-endpoints)
 
 ---
 
-## 🎨 Aperçu visuel
+## Vue d'ensemble
 
-### Page d'accueil - Découverte d'articles
+**Digital Scholar** est une plateforme éducative composée de deux applications Django qui communiquent par API REST :
 
-La page d'accueil affiche les articles publiés les plus récents avec une interface propre et intuitive :
+| Composant | Dossier | Port | Rôle |
+|---|---|---|---|
+| **Client — EduTrack CMS** | `Client_blog_post/` | `8000` | Publication, lecture, commentaires, tracking |
+| **Serveur — Digital Scholar** | `serveur/` | `8001` | Réception des données, dashboards analytiques |
 
-![Accueil - Articles en vedette](Client_blog_post/client_design/acceuil.png)
+### Objectifs
 
----
+- Offrir un **CMS intuitif** pour la création et publication d'articles pédagogiques structurés
+- Implémenter un **système d'analytics avancé** pour mesurer l'engagement des lecteurs
+- Synchroniser les données en **temps quasi-réel** entre client et serveur
+- Proposer des **dashboards intuitifs** avec visualisations de données (Chart.js)
 
-### Lecture d'article - Expérience de lecture
-
-Interface de lecture complète avec:
-- Sections structurées (Introduction, Contenu, Conclusion, Ressources)
-- Système de commentaires threaded
-- Tracking automatique du temps de lecture par section
-- Options de partage
-
-![Lecture article - Interface de lecture complète](Client_blog_post/client_design/lecture.png)
-
----
-
-### Exploration des articles - Catalogue avec filtres
-
-Vue de tous les articles publiés avec:
-- Filtrage par catégorie
-- Recherche par titre/tags
-- Statistiques par article (vues, commentaires)
-- Navigation fluide
-
-![Explorateur - Catalogue d'articles](Client_blog_post/client_design/explorations%20articles.png)
-
----
-
-### Création/Édition d'article - Éditeur puissant
-
-Formulaire complet pour créer et éditer des articles avec:
-- Éditeur Rich-text (Quill.js)
-- Gestion des médias (images, vidéos, audio)
-- Prévisualisation en temps réel
-- Structuration en sections pédagogiques
-
-![Éditeur - Création d'article](Client_blog_post/client_design/nouveau%20article.png)
-
----
-
-### Dashboard auteur - Statistiques personnalisées
-
-Tableau de bord avec:
-- Vue d'ensemble des articles (BROUILLON vs PUBLIÉS)
-- Statistiques en temps réel (vues, commentaires, partages)
-- Graphiques de tendances (Chart.js)
-- Actions rapides (créer, éditer, supprimer)
-
-![Dashboard auteur - Statistiques et gestion](Client_blog_post/client_design/dashoard.png)
-
----
-
-## 🎯 Vue d'ensemble
-
-**Digital Scholar** est une plateforme éducative complète composée de deux applications Django qui communiquent par API REST :
-
-### Objectifs principaux
-
-- ✅ Offrir une **alternative pédagogique à Substack** pour les enseignants
-- ✅ Fournir un **CMS intuitif** pour la création et publication d'articles structurés
-- ✅ Implémenter un **système d'analytics avancé** pour mesurer l'engagement
-- ✅ Synchroniser les données en **temps quasi-réel** entre client et serveur
-- ✅ Proposer des **dashboards intuitifs** avec visualisations de données
-- ✅ Assurer la **sécurité et la conformité** des données éducatives
-
-### Cas d'usage principaux
+### Cas d'usage
 
 | Utilisateur | Tâches principales |
 |---|---|
-| 👨‍🏫 **Enseignant / Auteur** | Créer, publier, éditer articles • Visualiser statistiques • Répondre aux commentaires |
-| 👧 **Enfant / Lecteur** | Découvrir articles • Lire et commenter • Interagir (partages) |
-| 📊 **Administrateur / Analytique** | Exploiter les données • Générer rapports • Analyser tendances |
+| **Auteur / Enseignant** | Créer, publier, éditer articles • Visualiser statistiques personnelles • Gérer commentaires |
+| **Enfant / Lecteur** | Découvrir et lire des articles • Commenter • Partager |
+| **Administrateur** | Exploiter les données analytiques • Analyser tendances • Surveiller l'activité |
 
 ---
 
-## 🏗️ Architecture globale
+## Captures d'écran — Client (EduTrack)
 
-### Diagramme architecture haute niveau
+### Page d'accueil
 
-```mermaid
-graph TB
-    subgraph Client["🖥️ CLIENT — Application Web (Port 8000)"]
-        UI["📱 Interface utilisateur<br/>HTML/CSS/JS"]
-        CMS["📝 Système de gestion<br/>EduTrack CMS"]
-        Analytics["📊 Analytics local<br/>Tracking lecteur"]
-        DB_Client[("💾 SQLite<br/>Client DB")]
-        
-        CMS --> DB_Client
-        UI --> CMS
-        Analytics --> CMS
-    end
-    
-    subgraph Server["☁️ SERVEUR — Analytics Central (Port 5000)"]
-        API["🔌 REST API<br/>Sync endpoints"]
-        Views["📊 Dashboards<br/>Analytics avancés"]
-        Services["⚙️ Services métier<br/>Logique données"]
-        DB_Server[("💾 SQLite<br/>Server DB<br/>Données sync")]
-        
-        API --> Services
-        Services --> DB_Server
-        Views --> Services
-    end
-    
-    Client -->|HTTP POST<br/>JSON| Server
-    Server -->|HTTP 200/400<br/>JSON Response| Client
-    
-    style Client fill:#e1f5ff,stroke:#01579b
-    style Server fill:#f3e5f5,stroke:#4a148c
-```
+Articles vedettes, barre de recherche et articles récents avec compteurs de vues, commentaires et partages :
 
-### Flux de données entre Client et Serveur
-
-```mermaid
-sequenceDiagram
-    participant Auteur as 👨‍💼<br/>Auteur
-    participant Client as 🖥️<br/>Client<br/>(CMS)
-    participant DB_C as 💾<br/>Client DB
-    participant Network as 🌐<br/>Network
-    participant Server as ☁️<br/>Server<br/>(Analytics)
-    participant DB_S as 💾<br/>Server DB
-    participant Dashboard as 📊<br/>Dashboard
-
-    Auteur->>Client: 1. Crée/édite article
-    Client->>DB_C: Sauvegarde local
-    Client->>Network: POST /api/sync/article/
-    Network->>Server: JSON payload
-    Server->>DB_S: Crée/met à jour
-    Server->>Dashboard: Notifie datos
-    
-    Auteur->>Dashboard: 5. Consulte stats
-    Dashboard->>DB_S: Requête analytics
-    DB_S->>Dashboard: Data visualisation
-```
+![Page d'accueil EduTrack](PROJET_04_KABU_DIANZAMBI_DON/client/client%20Accueil.png)
 
 ---
 
-## 🔌 Composants du système
+### Connexion auteur
 
-### 1️⃣ CLIENT — Application de publication (Port 8000)
+Page de connexion réservée aux auteurs pour accéder aux fonctionnalités de publication :
 
-**Localisation:** [`Client_blog_post/`](Client_blog_post/)
-
-**Responsabilités:**
-- Interface de publication pour auteurs
-- Éditeur d'articles structuré
-- Visualisation et lecture d'articles par lecteurs
-- Gestion des commentaires
-- Tracking des interactions (analytics local)
-- Synchronisation des données vers le serveur
-
-**Caractéristiques principales:**
-
-| Fonctionnalité | Description | Fichier |
-|---|---|---|
-| 📝 **CRUD Articles** | Create, Read, Update, Delete | [`blog/views.py`](Client_blog_post/blog/views.py) |
-| 💬 **Commentaires threaded** | Réponses imbriquées | [`blog/models.py`](Client_blog_post/blog/models.py) |
-| 🏷️ **Catégorisation** | 20 catégories + tags libres | [`blog/forms.py`](Client_blog_post/blog/forms.py) |
-| 📊 **Analytics local** | Tracking sections, durée, device | [`blog/sync.py`](Client_blog_post/blog/sync.py) |
-| 🔐 **Authentification** | Signup/Login auteurs | [`blog/views.py`](Client_blog_post/blog/views.py) |
-| 🎨 **Interface responsive** | Mobile, tablet, desktop | [`Client_blog_post/templates/`](Client_blog_post/templates/) |
-| 📱 **Suivi engagement** | Vues, partages, temps lecture | [`static/js/analytics.js`](Client_blog_post/static/js/analytics.js) |
-
-**Documentation détaillée:** ➡️ Voir [Client_blog_post/README.md](Client_blog_post/README.md)
+![Connexion auteur](PROJET_04_KABU_DIANZAMBI_DON/client/client%20connexion.png)
 
 ---
 
-### 2️⃣ SERVEUR — Plateforme analytique (Port 5000)
+### Inscription auteur
 
-**Localisation:** [`serveur/`](serveur/)
+Formulaire de création de compte auteur (username, prénom, nom, email, mot de passe) :
 
-**Responsabilités:**
-- Réception et validation des données synchronisées
-- Agrégation et analyse des données analytiques
-- Dashboards multidimensionnels
-- Exploration et tendances
-- Gestion des utilisateurs et auteurs
-
-**Caractéristiques principales:**
-
-| Fonctionnalité | Description | Fichier |
-|---|---|---|
-| 🔌 **9 Endpoints REST API** | Sync users, articles, analytics | [`analytics/api.py`](serveur/analytics/api.py) |
-| 📊 **Dashboard global** | KPIs, tendances, top articles | [`analytics/views.py`](serveur/analytics/views.py) |
-| 📈 **Analytique avancée** | Breakdown par section, device, auteur | [`analytics/services.py`](serveur/analytics/services.py) |
-| 🔍 **Explorateur articles** | Filtrage, recherche, tri | [`analytics/views.py`](serveur/analytics/views.py) |
-| 👥 **Gestion auteurs** | Stats, activité, articles | [`analytics/views.py`](serveur/analytics/views.py) |
-| 📱 **Activité utilisateurs** | Sessions, devices, navigateurs | [`analytics/views.py`](serveur/analytics/views.py) |
-| 💾 **Synchronisation atomique** | Backup et consistency | [`analytics/api.py`](serveur/analytics/api.py) |
-
-**Documentation détaillée:** ➡️ Voir [serveur/README.md](serveur/README.md)
+![Inscription auteur](PROJET_04_KABU_DIANZAMBI_DON/client/client%20register.png)
 
 ---
 
-## 💻 Stack technologique
+### Explorateur d'articles
 
-### Frontend
+Catalogue complet avec filtres par catégorie, recherche plein-texte, statistiques par article et tags :
 
-```
-┌─────────────────────────────────────────┐
-│  Couche présentation                    │
-├─────────────────────────────────────────┤
-│  • HTML5 + CSS3 (Grid, Flexbox)        │
-│  • JavaScript Vanilla (ES6+)            │
-│  • Intersection Observer API (tracking) │
-│  • LocalStorage (caching)               │
-│  • Fetch API (requêtes HTTP)            │
-├─────────────────────────────────────────┤
-│  Bibliothèques CDN                      │
-│  • Quill.js 1.3.7 (éditeur rich-text)  │
-│  • Chart.js 4.4.4 (graphiques)          │
-│  • Google Fonts (Newsreader, Public)   │
-└─────────────────────────────────────────┘
-```
-
-### Backend
-
-```
-┌─────────────────────────────────────────┐
-│  Framework & ORM                        │
-├─────────────────────────────────────────┤
-│  • Django 6.0.3 (web framework)        │
-│  • Django ORM (persistance données)     │
-│  • SQLite 3 (base de données)           │
-│  • Bleach 6.x (sanitisation HTML)       │
-├─────────────────────────────────────────┤
-│  Sécurité                               │
-│  • Django Sessions (auth)               │
-│  • CSRF Protection (middleware)         │
-│  • Password hashing (PBKDF2)            │
-│  • SQL injection prevention (ORM)       │
-│  • XSS prevention (template escaping)   │
-└─────────────────────────────────────────┘
-```
-
-### Infrastructure
-
-```
-┌─────────────────────────────────────────┐
-│  Environnement de développement         │
-├─────────────────────────────────────────┤
-│  • Python 3.14+ (language)              │
-│  • VS Code (IDE)                        │
-│  • Virtual Environment (.venv)          │
-│  • Git + GitHub (version control)       │
-│  • PowerShell (terminal)                │
-├─────────────────────────────────────────┤
-│  Déploiement (recommandé)               │
-│  • Gunicorn (WSGI server)               │
-│  • Nginx (reverse proxy)                │
-│  • PostgreSQL (production DB)           │
-│  • Docker (containerisation)            │
-└─────────────────────────────────────────┘
-```
+![Explorateur articles](PROJET_04_KABU_DIANZAMBI_DON/client/client%20Explorer.png)
 
 ---
 
-## 🔄 Flux de données
+### Lecture d'article
 
-### 1. Flux auteur (Publication)
+Interface de lecture avec sections structurées (Introduction, Objectifs, Contenu, Conclusion, Ressources), système de commentaires threadés et tracking automatique :
 
-```mermaid
-graph LR
-    A["1️⃣ Signup<br/>Auteur"] --> B["2️⃣ Crée article<br/>Stockage local"]
-    B --> C["3️⃣ Publie<br/>status=published"]
-    C --> D["4️⃣ Sync serveur<br/>POST /api/sync/article/"]
-    D --> E["5️⃣ Dashboard<br/>Articles visibles"]
-    
-    style A fill:#fff3e0
-    style B fill:#fff3e0
-    style C fill:#fff3e0
-    style D fill:#e0f2f1
-    style E fill:#e0f2f1
-```
-
-### 2. Flux lecteur (Engagement)
-
-```mermaid
-graph LR
-    A["1️⃣ Visite<br/>article"] --> B["2️⃣ Intersection<br/>Observer"]
-    B --> C["3️⃣ Track par<br/>section"]
-    C --> D["4️⃣ Envoie<br/>analytics"]
-    D --> E["5️⃣ Server<br/>agrège"]
-    E --> F["6️⃣ Dashboard<br/>stats"]
-    
-    style A fill:#f3e5f5
-    style B fill:#f3e5f5
-    style C fill:#f3e5f5
-    style D fill:#e0f2f1
-    style E fill:#e0f2f1
-    style F fill:#e0f2f1
-```
-
-### 3. Flux synchronisation complète
-
-```mermaid
-graph TB
-    Client["📱 Client<br/>Full state"]
-    
-    Client --> |POST /api/sync/full/| API["🔌 API<br/>Validation"]
-    API --> |transaction()| DB["💾 Database<br/>Server"]
-    
-    subgraph Sync["Éléments synchronisés"]
-        Users["Users"]
-        Tags["Tags"]
-        Articles["Articles"]
-        Comments["Comments"]
-        Analytics["Analytics Events"]
-        Logs["Action Logs"]
-    end
-    
-    API --> Sync
-    Sync --> DB
-    
-    DB --> Response["200 OK<br/>{ok: true}"]
-    
-    style Client fill:#fff3e0
-    style API fill:#e0f2f1
-    style DB fill:#e0f2f1
-    style Response fill:#c8e6c9
-```
+![Lecture d'article](PROJET_04_KABU_DIANZAMBI_DON/client/client%20lecture%20article.png)
 
 ---
 
-## 📚 Guide complet de navigation
+### Dashboard auteur
+
+Tableau de bord personnel avec KPIs (lectures, temps moyen, commentaires, partages), graphiques de publications/vues/commentaires sur 30 jours, répartition par catégorie, suivi des appareils/navigateurs et liste des articles :
+
+![Dashboard auteur](PROJET_04_KABU_DIANZAMBI_DON/client/client%20dashboard.png)
+
+---
+
+## Captures d'écran — Serveur (Digital Scholar)
+
+### Connexion administrateur
+
+Page de connexion pour accéder au tableau de bord analytique :
+
+![Connexion Digital Scholar](PROJET_04_KABU_DIANZAMBI_DON/serveur/serveur%20connexion.png)
+
+---
+
+### Tableau de bord analytique global
+
+Dashboard principal avec KPIs globaux (vues totales, temps de lecture, commentaires, partages), graphiques tendances publication/vues/commentaires/appareils, top articles (plus vus, commentés, partagés) et tableau de tous les articles :
+
+![Tableau de bord analytique](PROJET_04_KABU_DIANZAMBI_DON/serveur/serveur%20dash.png)
+
+---
+
+### Statistiques articles
+
+Vue d'ensemble des articles : compteurs total/publiés/brouillons/supprimés, répartition par catégorie (donut), répartition par auteur (barres horizontales), tendance de publication sur 30 jours, top 5 articles les plus vus et plus commentés, tableau complet :
+
+![Statistiques articles](PROJET_04_KABU_DIANZAMBI_DON/serveur/serveur%20arcticles.png)
+
+---
+
+### Analyse détaillée d'un article
+
+Analytique profonde par article : vues totales, commentaires, taux d'engagement, partages, âge de l'article depuis sa création, tendance des vues sur 30 jours, progression sur 7 jours et analyse des mots-clés fréquents :
+
+![Analyse article](PROJET_04_KABU_DIANZAMBI_DON/serveur/serveur%20article.jpg)
+
+---
+
+### Documentation API
+
+Documentation interactive des 9 endpoints de synchronisation avec exemples de payload :
+
+![Documentation API](PROJET_04_KABU_DIANZAMBI_DON/serveur/serveur%20Documentation%20API.png)
+
+---
+
+## Architecture globale
+
+```
+┌──────────────────────────┐    HTTP POST (JSON)    ┌──────────────────────────┐
+│  CLIENT — Port 8000      │ ──────────────────────▶│  SERVEUR — Port 8001     │
+│  EduTrack CMS            │                        │  Digital Scholar         │
+│                          │  /api/sync/user/        │                          │
+│  blog/views.py           │  /api/sync/article/     │  analytics/api.py        │
+│  blog/sync.py            │  /api/sync/comment/     │  analytics/services.py   │
+│  (fire-and-forget)       │  /api/sync/action-log/  │  analytics/views.py      │
+│                          │  /api/sync/full/        │                          │
+│  SQLite (client DB)      │                        │  SQLite (server DB)      │
+└──────────────────────────┘                        └──────────────────────────┘
+```
 
 ### Structure du projet
 
 ```
 PROJET N°3/
 │
-├── 📄 README.md                          ← Vue d'ensemble (CE FICHIER)
-├── 📄 PRESENTATION.md                    ← Présentation complète
-├── 📄 TEST_CASES_USER_STORIES.md         ← Cases de test détaillées
+├── README.md                             ← Documentation technique complète
+├── PRESENTATION.md                       ← Ce fichier
 │
-├── 🖥️  Client_blog_post/                 ← APPLICATION CLIENT
-│   ├── README.md                         ← Documentation client
+├── .venv/                                ← Environnement virtuel Python partagé
+│
+├── Client_blog_post/                     ← APPLICATION CLIENT
 │   ├── manage.py
-│   ├── db.sqlite3                        ← Base données locale
-│   │
-│   ├── blog/                             ← App principale
-│   │   ├── models.py                     ← 7 modèles (User, Article, etc.)
+│   ├── db.sqlite3
+│   ├── blog/
+│   │   ├── models.py                     ← 6 modèles (Tag, Article, ReaderComment, ...)
 │   │   ├── views.py                      ← 11 vues (CRUD, auth, tracking)
-│   │   ├── forms.py                      ← Formulaires (ArticleForm, etc.)
-│   │   ├── urls.py                       ← Routes
-│   │   ├── sync.py                       ← Synchronisation vers serveur
-│   │   ├── admin.py                      ← Django Admin
+│   │   ├── forms.py
+│   │   ├── sync.py                       ← Synchronisation vers le serveur
+│   │   ├── urls.py
 │   │   └── management/commands/
 │   │       ├── full_sync.py              ← Bootstrap sync
-│   │       └── seed_demo_data.py         ← Données de démo
-│   │
-│   ├── templates/blog/                   ← Pages (5 templates)
-│   │   ├── home.html                     ← Page d'accueil
-│   │   ├── article_list.html             ← Liste articles
-│   │   ├── article_detail.html           ← Lecture + commentaires
-│   │   ├── article_form.html             ← Éditeur
-│   │   ├── dashboard.html                ← Dashboard auteur
-│   │   └── ...
-│   │
-│   ├── static/
-│   │   ├── css/                          ← Feuilles de styles (7 fichiers)
-│   │   └── js/
-│   │       └── analytics.js              ← Tracking Intersection Observer
-│   │
-│   └── Client_blog_post/                 ← Config Django
-│       ├── settings.py                   ← Configuration
-│       ├── urls.py                       ← Routes globales
-│       └── wsgi.py                       ← WSGI entry
+│   │       └── seed_demo_data.py
+│   ├── templates/blog/
+│   ├── static/css/                       ← 7 feuilles de style
+│   └── static/js/analytics.js           ← Tracking Intersection Observer
 │
-├── ☁️  serveur/                          ← APPLICATION SERVEUR
-│   ├── README.md                         ← Documentation serveur
+├── serveur/                              ← APPLICATION SERVEUR
 │   ├── manage.py
-│   ├── db.sqlite3                        ← Base données analytics
-│   │
-│   ├── analytics/                        ← App analytique
-│   │   ├── models.py                     ← 12 modèles (Client*, Teacher, etc.)
-│   │   ├── views.py                      ← 9 vues (dashboards, pages)
-│   │   ├── api.py                        ← 9 endpoints API REST
-│   │   ├── services.py                   ← Logique analytique
-│   │   ├── urls.py                       ← Routes
-│   │   ├── admin.py                      ← Django Admin
-│   │   └── management/commands/
-│   │       └── seed_test_data.py         ← Données de test
-│   │
-│   ├── templates/analytics/              ← Pages dashboards
-│   │   ├── api_docs.html                 ← Documentation API
-│   │   ├── dashboard.html                ← Dashboard global
-│   │   ├── explorateur.html              ← Explorateur articles
-│   │   ├── tendances.html                ← Tendances
-│   │   ├── article_detail.html           ← Analytics article
-│   │   ├── auteur_detail.html            ← Analytics auteur
-│   │   ├── utilisateurs.html             ← Activité utilisateurs
-│   │   └── ...
-│   │
-│   ├── static/
-│   │   ├── css/                          ← Styles dashboards
-│   │   └── js/                           ← Scripts interactions
-│   │
-│   └── digital_scholar/                  ← Config Django
-│       ├── settings.py
-│       ├── urls.py
-│       └── wsgi.py
+│   ├── db.sqlite3
+│   ├── analytics/
+│   │   ├── models.py                     ← 12 modèles (5 legacy + 7 Client*)
+│   │   ├── views.py                      ← Dashboard, articles, utilisateurs
+│   │   ├── api.py                        ← 9 endpoints REST de synchronisation
+│   │   ├── services.py                   ← Logique analytique / requêtes ORM
+│   │   └── urls.py
+│   └── templates/analytics/             ← dashboard, article_list, article_detail,
+│                                            utilisateurs, api_docs
 │
-└── 🎨  Design sans titre (1)/            ← Assets design (optionnel)
+└── PROJET_04_KABU_DIANZAMBI_DON/        ← Captures d'écran et rapport
+    ├── client/                           ← Captures de l'application client
+    └── serveur/                          ← Captures de l'application serveur
 ```
-
-### Documentation par domaine
-
-#### 🖥️ **Client (CMS) — Application Web**
-- **Point d'entrée:** Voir [Client_blog_post/README.md](Client_blog_post/README.md)
-- **Modèles de données:** [Client_blog_post/blog/models.py](Client_blog_post/blog/models.py)
-- **Routes & Vues:** [Client_blog_post/blog/urls.py](Client_blog_post/blog/urls.py) + [Client_blog_post/blog/views.py](Client_blog_post/blog/views.py)
-- **Formulaires:** [Client_blog_post/blog/forms.py](Client_blog_post/blog/forms.py)
-- **Synchronisation:** [Client_blog_post/blog/sync.py](Client_blog_post/blog/sync.py)
-- **Templates:** [Client_blog_post/templates/](Client_blog_post/templates/)
-- **Styles:** [Client_blog_post/static/css/](Client_blog_post/static/css/)
-- **Tracking:** [Client_blog_post/static/js/analytics.js](Client_blog_post/static/js/analytics.js)
-
-#### ☁️ **Serveur (Analytics) — Plateforme analytique**
-- **Point d'entrée:** Voir [serveur/README.md](serveur/README.md)
-- **Modèles & Base de données:** [serveur/analytics/models.py](serveur/analytics/models.py)
-- **API REST:** [serveur/analytics/api.py](serveur/analytics/api.py)
-- **Vues & Pages:** [serveur/analytics/views.py](serveur/analytics/views.py)
-- **Logique analytique:** [serveur/analytics/services.py](serveur/analytics/services.py)
-- **Routes:** [serveur/analytics/urls.py](serveur/analytics/urls.py)
-- **Dashboards:** [serveur/templates/analytics/](serveur/templates/analytics/)
-
-#### 🧪 **Tests & QA**
-- **User Stories & Test Cases:** Voir [TEST_CASES_USER_STORIES.md](TEST_CASES_USER_STORIES.md)
-- **Tests Client:** [Client_blog_post/blog/tests.py](Client_blog_post/blog/tests.py)
-- **Tests Serveur:** [serveur/analytics/tests.py](serveur/analytics/tests.py)
 
 ---
 
-## 🚀 Guide de démarrage
+## Stack technologique
+
+| Couche | Technologie | Usage |
+|---|---|---|
+| **Langage** | Python 3.14+ | Backend |
+| **Framework** | Django 6.0.3 | Web + ORM |
+| **Base de données** | SQLite 3 | Persistance (développement) |
+| **Graphiques** | Chart.js 4.4.4 | Dashboards interactifs |
+| **Éditeur rich-text** | Quill.js 1.3.7 | Rédaction articles |
+| **Tracking** | Intersection Observer API | Suivi lecture par section |
+| **Sécurité** | CSRF, sessions Django, PBKDF2, ORM | Protection XSS/injection SQL |
+| **Polices** | Google Fonts (Newsreader, Public Sans) | Typographie |
+
+---
+
+## Guide de démarrage
 
 ### Prérequis
 
 - Python 3.14+
-- pip (gestionnaire de paquets)
-- Git
-- VS Code ou IDE similaire
+- L'environnement virtuel est déjà créé dans `.venv/`
 
-### Installation complète
+---
 
-#### 1. Cloner et préparer
+### 1. Activer l'environnement virtuel
 
-```bash
-# Cloner le projet (si sur GitHub)
-git clone <repo-url>
-cd "PROJET N°3"
-
-# Créer environnement virtuel
-python -m venv .venv
-
-# Activer l'environnement
-.venv\Scripts\activate        # Windows
-source .venv/bin/activate     # macOS/Linux
+L'environnement virtuel se trouve dans :
+```
+C:\Users\HP\Documents\CCC\PROJET N°3\.venv
 ```
 
-#### 2. Démarrer le SERVEUR
+```bash
+# Depuis la racine PROJET N°3
+
+# Windows — PowerShell
+.\.venv\Scripts\Activate.ps1
+
+# Windows — CMD
+.venv\Scripts\activate.bat
+
+# Linux / macOS
+source .venv/bin/activate
+```
+
+> Le prompt du terminal doit afficher `(.venv)` une fois activé.
+
+---
+
+### 2. Démarrer le SERVEUR analytique (port 8001)
 
 ```bash
-# Naviguer au dossier serveur
 cd serveur
 
-# Appliquer migrations
+# Appliquer les migrations
 python manage.py migrate
 
-# (Optionnel) Charger données de test
+# (Optionnel) Charger des données de test
 python manage.py seed_test_data
 
-# Démarrer serveur
-python manage.py runserver 5000
-# Accédez à http://localhost:5000/
+# Démarrer
+python manage.py runserver 8001
 ```
 
-#### 3. Démarrer le CLIENT
+Accéder au dashboard : **http://localhost:8001/dashboard/**
+
+---
+
+### 3. Démarrer le CLIENT (dans un 2e terminal)
 
 ```bash
-# Ouvrir nouveau terminal, activer .venv
+# Réactiver le .venv si nécessaire
+.\.venv\Scripts\Activate.ps1
 
-# Naviguer au dossier client
 cd Client_blog_post
 
-# Appliquer migrations
+# Appliquer les migrations
 python manage.py migrate
 
-# (Optionnel) Charger données de démo
+# (Optionnel) Charger des données de démo
 python manage.py seed_demo_data
 
-# Démarrer client
+# Démarrer
 python manage.py runserver 8000
-# Accédez à http://localhost:8000/
 ```
 
-### Accès et Premières étapes
+Accéder au client : **http://localhost:8000/**
 
-| Composant | URL | Rôle |
-|---|---|---|
-| **Home Client** | http://localhost:8000/ | Page d'accueil, articles publiés |
-| **Signup Client** | http://localhost:8000/accounts/signup/ | Créer compte auteur |
-| **Dashboard Auteur** | http://localhost:8000/dashboard/ | Statistiques auteur |
-| **API Docs Serveur** | http://localhost:5000/ | Documentation API |
-| **Dashboard Admin** | http://localhost:5000/dashboard/ | Analytics globale |
-| **Explorateur** | http://localhost:5000/explorateur/ | Explorer tous les articles |
-| **Django Admin Client** | http://localhost:8000/admin/ | Gestion base données client |
-| **Django Admin Serveur** | http://localhost:5000/admin/ | Gestion base données serveur |
+---
 
-### Credentials de démo (si données chargées)
+### 4. Synchroniser les données existantes
 
-```
-Username: demo_author
-Password: DemoPass123!
-Email: demo@example.com
+Si des données existent côté client et doivent être envoyées au serveur :
+
+```bash
+# Dans le terminal client (avec .venv actif)
+cd Client_blog_post
+python manage.py full_sync
 ```
 
 ---
 
-## 📖 Support et documentation
+### Accès rapide
 
-### Fichiers de documentation
-
-| Fichier | Contenu | Audience |
+| Page | URL | Description |
 |---|---|---|
-| **README.md** | Vue d'ensemble projet | Tous |
-| **PRESENTATION.md** | Présentation détaillée + architecture | Développeurs, PMs |
-| **Client_blog_post/README.md** | Spécifications client | Dev Frontend/Backend Client |
-| **serveur/README.md** | Spécifications serveur | Dev Backend Serveur |
-| **TEST_CASES_USER_STORIES.md** | 40 User Stories + tests | QA, Test Engineers |
+| **Accueil client** | http://localhost:8000/ | Articles publiés |
+| **Connexion auteur** | http://localhost:8000/accounts/login/ | Espace auteur |
+| **Inscription auteur** | http://localhost:8000/accounts/signup/ | Créer un compte |
+| **Dashboard auteur** | http://localhost:8000/dashboard/ | Statistiques personnelles |
+| **Explorateur articles** | http://localhost:8000/articles/ | Tous les articles |
+| **Dashboard analytique** | http://localhost:8001/dashboard/ | Analytics globales |
+| **Statistiques articles** | http://localhost:8001/articles/ | Stats par article |
+| **Statistiques utilisateurs** | http://localhost:8001/utilisateurs/ | Activité utilisateurs |
+| **Documentation API** | http://localhost:8001/ | Endpoints de sync |
+| **Admin client** | http://localhost:8000/admin/ | Django Admin client |
+| **Admin serveur** | http://localhost:8001/admin/ | Django Admin serveur |
 
-### Guides techniques par sujet
+### Credentials de démo
 
-#### 📝 Si vous travaillez sur... **Création/Edition d'articles**
-→ Voir [Client_blog_post/blog/models.py](Client_blog_post/blog/models.py) + [Client_blog_post/blog/forms.py](Client_blog_post/blog/forms.py) + [Client_blog_post/blog/views.py (article_create/edit)](Client_blog_post/blog/views.py)
-
-#### 📊 Si vous travaillez sur... **Analytics et dashboards**
-→ Voir [serveur/analytics/services.py](serveur/analytics/services.py) + [serveur/analytics/views.py](serveur/analytics/views.py) + [serveur/templates/analytics/](serveur/templates/analytics/)
-
-#### 🔌 Si vous travaillez sur... **Synchronisation Client↔Server**
-→ Voir [Client_blog_post/blog/sync.py](Client_blog_post/blog/sync.py) + [serveur/analytics/api.py](serveur/analytics/api.py)
-
-#### 🔐 Si vous travaillez sur... **Authentification & Sécurité**
-→ Voir [Client_blog_post/blog/views.py (signup/login)](Client_blog_post/blog/views.py) + [Client_blog_post/blog/forms.py (AuthorSignupForm)](Client_blog_post/blog/forms.py)
-
-#### 💬 Si vous travaillez sur... **Commentaires & Engagement**
-→ Voir [Client_blog_post/blog/models.py (ReaderComment)](Client_blog_post/blog/models.py) + [Client_blog_post/blog/views.py (commentaire)](#) + [Client_blog_post/templates/blog/comment_node.html](Client_blog_post/templates/blog/comment_node.html)
-
-#### 📱 Si vous travaillez sur... **Responsive Design**
-→ Voir [Client_blog_post/static/css/](Client_blog_post/static/css/) + [Client_blog_post/templates/](Client_blog_post/templates/)
+```
+Username : demo_author   |   Password : DemoPass123!
+Username : auteur_demo   |   Password : DemoPass123!
+```
 
 ---
 
-## 🎯 Fonctionnalités principales par application
+## Référence des pages et endpoints
+
+### Client — Routes
+
+| Méthode | URL | Description |
+|---|---|---|
+| GET | `/` | Page d'accueil |
+| GET/POST | `/accounts/signup/` | Inscription auteur |
+| GET/POST | `/accounts/login/` | Connexion auteur |
+| GET | `/articles/` | Explorateur articles |
+| GET/POST | `/articles/new/` | Créer un article |
+| GET/POST | `/articles/<slug>/` | Lire + commenter |
+| GET/POST | `/articles/<slug>/edit/` | Modifier un article |
+| GET/POST | `/articles/<slug>/delete/` | Supprimer un article |
+| GET | `/dashboard/` | Dashboard auteur |
+| POST | `/analytics/track/` | Tracking section (AJAX) |
+| POST | `/analytics/share/` | Enregistrer partage (AJAX) |
+
+### Serveur — Pages analytiques
+
+| Méthode | URL | Description |
+|---|---|---|
+| GET | `/` | Documentation API |
+| GET | `/dashboard/` | Dashboard global |
+| GET | `/articles/` | Statistiques articles |
+| GET | `/articles/<id>/` | Analyse détaillée article |
+| GET | `/utilisateurs/` | Activité utilisateurs |
+
+### Serveur — API de synchronisation
+
+| Endpoint | Déclencheur côté client |
+|---|---|
+| `POST /api/sync/user/` | Inscription |
+| `POST /api/sync/tag/` | Création article avec nouveaux tags |
+| `POST /api/sync/article/` | Création / édition article |
+| `POST /api/sync/article-delete/` | Suppression article |
+| `POST /api/sync/comment/` | Nouveau commentaire |
+| `POST /api/sync/analytics/` | Événement de lecture par section |
+| `POST /api/sync/event/` | Événement analytics unitaire |
+| `POST /api/sync/action-log/` | Chaque action (vue, partage, commentaire, ...) |
+| `POST /api/sync/full/` | `python manage.py full_sync` |
+
+---
+
+## Fonctionnalités principales
 
 ### Application CLIENT
 
-✅ Authentification auteurs (Signup/Login/Logout)
-✅ CRUD articles structurés (20 catégories + tags)
-✅ Éditeur Rich-text (Quill.js)
-✅ Système de commentaires threaded
-✅ Tracking analytics (Intersection Observer)
-✅ Dashboard auteur avec 8 graphiques
-✅ Recherche intelligente d'articles
-✅ Partage avec compteur
-✅ Support multimédia (images, vidéos, audio)
-✅ Responsive design (mobile-first)
-✅ Protection CSRF
-✅ HTML sanitisation (bleach)
+- Authentification auteurs (Signup / Login / Logout)
+- CRUD articles structurés (20 catégories + tags libres)
+- Éditeur Rich-text Quill.js avec support images, vidéos, audio
+- Système de commentaires threadés (réponses imbriquées)
+- Tracking analytics par section (Intersection Observer API)
+- Dashboard auteur avec 8 graphiques Chart.js
+- Recherche intelligente par titre, contenu, tags
+- Compteur de partages
+- Synchronisation automatique vers le serveur (fire-and-forget)
+- Protection CSRF + sanitisation HTML (Bleach)
 
 ### Application SERVEUR
 
-✅ 9 endpoints API REST de synchronisation
-✅ Dashboard analytique global
-✅ Explorateur d'articles avec filtrage/recherche
-✅ Analyse des tendances
-✅ Détails analytiques par article
-✅ Détails analytiques par auteur
-✅ Suivi activité utilisateurs
-✅ Breakdown par device/navigateur/OS
-✅ Graphiques avec Chart.js
-✅ Synchronisation atomique
-✅ Backward-compatibility (API legacy)
-✅ Django Admin pour gestion
+- 9 endpoints REST pour la synchronisation
+- Dashboard global : KPIs, tendances, top articles, répartition devices/navigateurs
+- Statistiques articles : total, publiés, brouillons, supprimés, par catégorie, par auteur
+- Analyse détaillée par article : vues, commentaires, engagement, mots-clés, tendances 30j/7j
+- Statistiques utilisateurs : actifs, inactifs, rôles, inscriptions, activité
+- Détection automatique du type d'appareil (iPhone, Android, Tablette, Ordinateur)
+- Détection navigateur et OS
+- Graphiques doughnut, barres, lignes (Chart.js 4)
 
 ---
 
-## 🔗 Ressources externes
-
-### Documentations oficiales
-- [Django Documentation](https://docs.djangoproject.com/)
-- [Quill.js Documentation](https://quilljs.com/)
-- [Chart.js Documentation](https://www.chartjs.org/)
-- [Bleach Documentation](https://bleach.readthedocs.io/)
-- [SQLite Documentation](https://www.sqlite.org/docs.html)
-
-### Références d'architecture
-- [REST API Best Practices](https://www.restapitutorial.com/)
-- [Django ORM Patterns](https://docs.djangoproject.com/en/6.0/topics/db/models/)
-- [Web Security Standards - OWASP](https://owasp.org/www-project-top-ten/)
-
----
-
-## 📊 Statistiques du projet
+## Statistiques du projet
 
 | Métrique | Valeur |
 |---|---|
-| **Applications Django** | 2 (Client + Serveur) |
-| **Modèles de données** | 19 au total (7 Client + 12 Serveur) |
-| **Vues** | 20+ (11 Client + 9+ Serveur) |
-| **Endpoints API** | 9 (+ 2 legacy) |
-| **Templates** | 15+ |
-| **Feuilles CSS** | 7 |
-| **Catégories article** | 20 prédéfinies |
-| **Langues supportées** | Français (100%) |
-| **Responsive breakpoints** | 3 (mobile, tablet, desktop) |
-
----
-
-## 👥 Équipe et contacts
-
-- **Développement:** Développeur Full-Stack
-- **Architecture:** Architecte Système
-- **Tests & QA:** Test Engineer
-- **Produit:** Product Manager
-
----
-
-## 📄 Changelog
-
-### Version 1.0 (Actuelle)
-- ✅ Système complet Client/Serveur
-- ✅ 40+ User Stories
-- ✅ API REST synchronisation
-- ✅ Dashboards analytiques
-- ✅ Tests de sécurité basiques
-
-### Prochaines versions
-- 🔄 Authentification OAuth2
-- 🔄 Notifications push
-- 🔄 Export PDF articles
-- 🔄 Mode collaboration temps-réel
-- 🔄 Multi-langue (anglais, espagnol)
-- 🔄 Containerisation Docker
-- 🔄 CI/CD Pipeline
-
----
-
-## 📝 Notes importantes
-
-### ⚠️ Développement local
-- Utiliser `.venv` pour l'environnement virtuel
-- Les bases SQLite sont des fichiers locaux (`.git` ignore)
-- DEBUG=True en développement (à mettre False en prod)
-- Clés secrètes à régénérer pour production
-
-### 🔒 Sécurité en production
-- [ ] Mettre SECRET_KEY à l'aide de variables d'environnement
-- [ ] DEBUG = False
-- [ ] ALLOWED_HOSTS configuré correctement
-- [ ] HTTPS forcé (SECURE_SSL_REDIRECT = True)
-- [ ] Cookies HTTPONLY et SECURE
-- [ ] CORS configuré (si API publique)
-- [ ] Rate limiting implémenté
-- [ ] Audit logging actif
-
-### 📦 Déploiement recommandé
-- PostgreSQL pour la base (production)
-- Gunicorn + Nginx (serveur web)
-- Redis (caching)
-- Docker pour la conteneurisation
-- GitHub Actions pour CI/CD
-
----
-
-**Dernière mise à jour:** 14 Avril 2026
-**Version:** 1.0.0
-**Statut:** En développement actif
-**Licence:** MIT
-
----
-
-### 📌 Navigation rapide
-- [🖥️ Aller au code Client](Client_blog_post/)
-- [☁️ Aller au code Serveur](serveur/)
-- [🧪 Voir les Test Cases](TEST_CASES_USER_STORIES.md)
-- [📄 Retour au README principal](README.md)
+| Applications Django | 2 |
+| Modèles de données | 19 (6 client + 12 serveur + 1 legacy) |
+| Endpoints API | 9 sync + 2 legacy |
+| Templates HTML | 15+ |
+| Feuilles CSS | 7 |
+| Catégories article | 20 prédéfinies |
+| Langue | Français |
