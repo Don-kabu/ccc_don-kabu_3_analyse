@@ -6,7 +6,7 @@
 {% block content %}
 <!-- Breadcrumb -->
 <div class="breadcrumb">
-  <a href="{% url 'analytics:tendances' %}">← Analyses</a>
+  <a href="{% url 'analytics:article_list' %}">← Articles</a>
   <span>›</span>
   <span>{{ breadcrumb_category }}</span>
 </div>
@@ -14,69 +14,99 @@
 <h1 class="page-title" style="font-size:1.6rem;margin-bottom:4px">{{ article.title }}</h1>
 <p class="page-subtitle">Analyse détaillée de l'article publié par {{ article.teacher_display }}.</p>
 
-<!-- Hero: exposure time -->
+<!-- KPI row: vues, commentaires, engagement, partages -->
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:24px">
+  <div style="background:#fff;border:2px solid #e07a5f;border-radius:12px;padding:20px 16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+    <div style="font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#e07a5f;margin-bottom:8px">Vues totales</div>
+    <div style="font-size:2rem;font-weight:800;color:#1a1a2e">{{ engagement.total_reads }}</div>
+  </div>
+  <div style="background:#fff;border:2px solid #3d405b;border-radius:12px;padding:20px 16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+    <div style="font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#3d405b;margin-bottom:8px">Commentaires</div>
+    <div style="font-size:2rem;font-weight:800;color:#1a1a2e">{{ engagement.comment_count }}</div>
+  </div>
+  <div style="background:#fff;border:2px solid #81b29a;border-radius:12px;padding:20px 16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+    <div style="font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#527a55;margin-bottom:8px">Taux d'engagement</div>
+    <div style="font-size:2rem;font-weight:800;color:#1a1a2e">{{ engagement.engagement_rate }} %</div>
+  </div>
+  <div style="background:#fff;border:2px solid #f2cc8f;border-radius:12px;padding:20px 16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+    <div style="font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#b08030;margin-bottom:8px">Partages</div>
+    <div style="font-size:2rem;font-weight:800;color:#1a1a2e">{{ engagement.share_count }}</div>
+  </div>
+</div>
+
+<!-- Hero: article age -->
 <div class="detail-hero" style="margin-top:24px">
-  <div style="font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px">Temps d'exposition réel</div>
-  <div class="hero-time">{{ article.avg_minutes }}</div>
-  <div class="hero-unit">minutes</div>
-  <div class="hero-badge">↗ +12% vs moyenne globale</div>
+  <div style="font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px">Âge de l'article</div>
+  <div class="hero-time" style="font-size:2.2rem">{{ article_age_label }}</div>
+  <div class="hero-unit">depuis la création</div>
+  {% if article_age_days is not None %}
+  <div class="hero-badge">Créé le {{ article.created_at|truncatechars:10 }} · {{ article_age_days }} jour{{ article_age_days|pluralize }}</div>
+  {% endif %}
 </div>
 
-<!-- Visibility + Impressions -->
-<div class="detail-metrics-row">
-  <div class="detail-metric">
-    <div class="dm-label">Visibilité</div>
-    <div class="dm-value">{{ article.visibility_pct }}%</div>
-  </div>
-  <div class="detail-metric">
-    <div class="dm-label">Impressions</div>
-    <div class="dm-value">{{ article.total_reads }}</div>
-  </div>
+<!-- Section time breakdown -->
+{% if engagement.sections %}
+<div class="chart-card" style="margin-top:20px">
+  <div class="chart-title" style="margin-bottom:16px">Temps passé par section (secondes)</div>
+  <canvas id="sectionsChart" height="120"></canvas>
 </div>
+{% endif %}
 
-<!-- Word count -->
-<div class="detail-wc">
-  <div>
-    <div class="wc-label">Volume de mots</div>
-    <div class="wc-value">{{ article.word_count|default:"1 200" }}</div>
-  </div>
-  <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" opacity=".6">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-    <polyline points="14 2 14 8 20 8"/>
-  </svg>
-</div>
-
-<!-- Structure bar -->
-<div class="structure-bar">
-  <h3>Structure de l'Analyse</h3>
-  {% with total=article.word_count|default:1200 %}
-  <div class="struct-track">
-    {% for name, words in structure.items %}
-    <div class="struct-seg {% if forloop.first %}intro{% elif forloop.last %}conc{% else %}analyse{% endif %}"
-         style="width:{% widthratio words total 100 %}%"></div>
-    {% endfor %}
-  </div>
-  <div class="struct-labels">
-    {% for name, words in structure.items %}
-    <div class="struct-label-item">
-      <strong>{{ name }}</strong>
-      {{ words }} mots
-    </div>
-    {% endfor %}
-  </div>
-  {% endwith %}
+<!-- 30-day trend -->
+<div class="chart-card" style="margin-top:20px">
+  <div class="chart-title" style="margin-bottom:16px">Tendance des vues (30 derniers jours)</div>
+  <canvas id="trendChart" height="110"></canvas>
 </div>
 
 <!-- 7-day view progression -->
-<div class="chart-card">
+<div class="chart-card" style="margin-top:20px">
   <div class="chart-title" style="margin-bottom:16px">Progression des vues (7 derniers jours)</div>
   <canvas id="progressChart" height="100"></canvas>
 </div>
+
+<!-- Keyword analysis -->
+{% if keywords %}
+<div class="card" style="margin-top:20px">
+  <div class="card-title">Analyse des mots-clés</div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
+    {% for kw in keywords %}
+    <span style="
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:20px;
+      font-size:{% if kw.pct > 70 %}0.95rem{% elif kw.pct > 40 %}0.85rem{% else %}0.75rem{% endif %};
+      font-weight:{% if kw.pct > 70 %}700{% else %}500{% endif %};
+      background:rgba(192,122,80,{{ kw.pct }}0.01);
+      border:1px solid rgba(192,122,80,0.4);
+      color:#3d2b1a;
+      opacity:{% if kw.pct > 60 %}1{% else %}0.75{% endif %};
+    " title="{{ kw.count }} occurrences">
+      {{ kw.word }}
+    </span>
+    {% endfor %}
+  </div>
+  <div style="margin-top:16px">
+    <canvas id="keywordsChart" height="120"></canvas>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script>
+const BROWN = '#c07a50';
+const BROWN_LIGHT = 'rgba(192,122,80,.15)';
+
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.plugins.legend.display = false;
+
+function shortLabels(data) {
+  return data.map(d => { const p = d.date.split('-'); return p[2]+'/'+p[1]; });
+}
+
+// 7-day chart
 new Chart(document.getElementById('progressChart'), {
   type: 'bar',
   data: {
@@ -96,5 +126,64 @@ new Chart(document.getElementById('progressChart'), {
     },
   }
 });
+
+// 30-day trend
+const trendData = {{ daily_reads_30_json|safe }};
+new Chart(document.getElementById('trendChart'), {
+  type: 'line',
+  data: {
+    labels: shortLabels(trendData),
+    datasets: [{
+      data: trendData.map(d => d.count),
+      borderColor: BROWN,
+      backgroundColor: BROWN_LIGHT,
+      borderWidth: 2, pointRadius: 2, tension: .35, fill: true
+    }]
+  },
+  options: { scales: { x: { grid:{display:false}, ticks:{maxTicksLimit:15} }, y: { beginAtZero:true } } }
+});
+
+// Sections chart
+const sectionsData = {{ sections_json|safe }};
+if (document.getElementById('sectionsChart') && Object.keys(sectionsData).length) {
+  new Chart(document.getElementById('sectionsChart'), {
+    type: 'bar',
+    data: {
+      labels: Object.keys(sectionsData),
+      datasets: [{
+        data: Object.values(sectionsData),
+        backgroundColor: ['#e07a5f','#3d405b','#81b29a','#f2cc8f','#264653'],
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      scales: { x: { grid:{display:false} }, y: { beginAtZero:true, title:{display:true,text:'secondes'} } },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+// Keywords chart
+{% if keywords %}
+const kwData = {{ keywords|safe }};
+if (document.getElementById('keywordsChart')) {
+  new Chart(document.getElementById('keywordsChart'), {
+    type: 'bar',
+    data: {
+      labels: kwData.map(k => k.word),
+      datasets: [{
+        data: kwData.map(k => k.count),
+        backgroundColor: '#3d405b',
+        borderRadius: 3,
+      }]
+    },
+    options: {
+      scales: { x: { grid:{display:false} }, y: { beginAtZero:true, ticks:{stepSize:1} } },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+{% endif %}
 </script>
 {% endblock %}
+

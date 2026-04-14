@@ -8,25 +8,55 @@
 {% endblock %}
 
 {% block content %}
-<h1 class="dash-title">Activité des utilisateurs</h1>
+<h1 class="dash-title">Statistiques utilisateurs</h1>
 
 <!-- KPI -->
 <div class="kpi-grid-4">
   <div class="kpi-box">
-    <div class="kpi-box-label">Utilisateurs totaux</div>
+    <div class="kpi-box-label">Total utilisateurs</div>
     <div class="kpi-box-value">{{ total_users }}</div>
   </div>
   <div class="kpi-box">
-    <div class="kpi-box-label">Auteurs actifs</div>
-    <div class="kpi-box-value">{{ active_users }}</div>
-  </div>
-  <div class="kpi-box">
-    <div class="kpi-box-label">Taux d'activité</div>
-    <div class="kpi-box-value">{% if total_users %}{{ active_users|floatformat:0 }}{% else %}0{% endif %} / {{ total_users }}</div>
+    <div class="kpi-box-label">Actifs</div>
+    <div class="kpi-box-value" style="color:#527a55">{{ active_users }}</div>
   </div>
   <div class="kpi-box">
     <div class="kpi-box-label">Inactifs</div>
-    <div class="kpi-box-value">{{ total_users|add:"-"|add:active_users }}</div>
+    <div class="kpi-box-value" style="color:#c07a50">{{ inactive_users }}</div>
+  </div>
+  <div class="kpi-box">
+    <div class="kpi-box-label">Taux d'activité</div>
+    <div class="kpi-box-value">{% if total_users %}{% widthratio active_users total_users 100 %}{% else %}0{% endif %} %</div>
+  </div>
+</div>
+
+<!-- Role distribution + Registration trend -->
+<div class="grid-2">
+  <div class="card">
+    <div class="card-title">Répartition par rôle</div>
+    {% if role_dist %}
+    <div class="donut-wrap">
+      <canvas id="roleDonut" width="180" height="180"></canvas>
+      <div class="donut-center">
+        <span class="donut-number">{{ total_users }}</span>
+        <span class="donut-sub">utilisateurs</span>
+      </div>
+    </div>
+    <div class="donut-legend">
+      {% for r in role_dist %}
+      <div class="legend-item">
+        <span class="dot" style="background:{{ r.color }}"></span>
+        {{ r.label }} <strong>{{ r.count }}</strong>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="muted" style="padding:20px 0">Aucune donnée de rôle.</div>
+    {% endif %}
+  </div>
+  <div class="card">
+    <div class="card-title">Inscriptions <span class="card-badge">30 derniers jours</span></div>
+    <canvas id="registrationsChart" height="200"></canvas>
   </div>
 </div>
 
@@ -36,7 +66,39 @@
   <canvas id="actionsChart" height="140"></canvas>
 </div>
 
-<!-- Users table -->
+<!-- Top active users -->
+<h2 class="section-title">Utilisateurs les plus actifs</h2>
+<div class="card table-card">
+  <table class="dash-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Utilisateur</th>
+        <th>Articles publiés</th>
+        <th>Lectures reçues</th>
+        <th>Commentaires suscités</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in top_active %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td class="td-title">
+          <a href="{% url 'analytics:auteur_detail' u.id %}">{{ u.display_name }}</a>
+        </td>
+        <td>{{ u.published }}</td>
+        <td>{{ u.reads }}</td>
+        <td>{{ u.comments }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="muted">Aucun utilisateur.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Full users table -->
+<h2 class="section-title">Tous les utilisateurs</h2>
 <div class="card table-card">
   <table class="dash-table">
     <thead>
@@ -86,7 +148,9 @@
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script>
-const actionsDaily = {{ actions_daily_json|safe }};
+const actionsDaily    = {{ actions_daily_json|safe }};
+const registrations   = {{ registrations_daily_json|safe }};
+const roleDist        = {{ role_dist_json|safe }};
 const BROWN = '#c07a50';
 const BROWN_LIGHT = 'rgba(192,122,80,.15)';
 
@@ -98,6 +162,34 @@ function shortLabels(data) {
   return data.map(d => { const p = d.date.split('-'); return p[2]+'/'+p[1]; });
 }
 
+// Role donut
+if (roleDist.length && document.getElementById('roleDonut')) {
+  new Chart(document.getElementById('roleDonut'), {
+    type: 'doughnut',
+    data: {
+      labels: roleDist.map(r => r.label),
+      datasets: [{ data: roleDist.map(r => r.count), backgroundColor: roleDist.map(r => r.color), borderWidth: 0 }]
+    },
+    options: { cutout: '72%', plugins: { legend: { display: false } } }
+  });
+}
+
+// Registrations
+new Chart(document.getElementById('registrationsChart'), {
+  type: 'line',
+  data: {
+    labels: shortLabels(registrations),
+    datasets: [{
+      data: registrations.map(d => d.count),
+      borderColor: '#3d405b',
+      backgroundColor: 'rgba(61,64,91,.12)',
+      borderWidth: 2, pointRadius: 2, tension: .35, fill: true
+    }]
+  },
+  options: { scales: { x: { grid:{display:false}, ticks:{maxTicksLimit:15} }, y: { beginAtZero:true, ticks:{stepSize:1} } } }
+});
+
+// Actions daily
 new Chart(document.getElementById('actionsChart'), {
   type: 'line',
   data: {

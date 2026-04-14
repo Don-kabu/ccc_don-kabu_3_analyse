@@ -1,34 +1,179 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Articles suivis – Digital Scholar{% endblock %}
+{% block title %}Articles – Digital Scholar{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
+{% endblock %}
 
 {% block content %}
-<h1 class="page-title" style="margin-bottom:6px">Articles suivis</h1>
-<p class="page-subtitle">{{ articles|length }} article{% if articles|length != 1 %}s{% endif %} enregistré{% if articles|length != 1 %}s{% endif %}.</p>
+<h1 class="dash-title">Statistiques articles</h1>
 
-<div class="article-list" style="margin-top:24px">
-  {% for article in articles %}
-  <div class="article-row">
-    <div class="art-icon">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-      </svg>
-    </div>
-    <div class="art-info">
-      <a href="{% url 'analytics:article_detail' article.id %}">
-        <div class="art-title">{{ article.title }}</div>
-      </a>
-      <div class="art-date">{{ article.display_name }} • {{ article.tags|default:"—" }}</div>
-    </div>
-    <div>
-      <div class="art-reads">{{ article.total_reads }}</div>
-      <div class="art-reads-label">Vues</div>
-    </div>
+<!-- KPI cards -->
+<div class="kpi-grid-4">
+  <div class="kpi-box">
+    <div class="kpi-box-label">Total articles</div>
+    <div class="kpi-box-value">{{ stats.total }}</div>
   </div>
-  {% empty %}
-  <p style="color:var(--text-muted);padding:20px 0">Aucun article reçu du client pour le moment.</p>
-  {% endfor %}
+  <div class="kpi-box">
+    <div class="kpi-box-label">Publiés</div>
+    <div class="kpi-box-value" style="color:#527a55">{{ stats.published }}</div>
+  </div>
+  <div class="kpi-box">
+    <div class="kpi-box-label">Brouillons</div>
+    <div class="kpi-box-value" style="color:#c07a50">{{ stats.draft }}</div>
+  </div>
+  <div class="kpi-box">
+    <div class="kpi-box-label">Supprimés</div>
+    <div class="kpi-box-value" style="color:#b5534a">{{ stats.deleted }}</div>
+  </div>
 </div>
+
+<!-- Category + Author distribution -->
+<div class="grid-2">
+  <div class="card">
+    <div class="card-title">Répartition par catégorie</div>
+    <div class="donut-wrap">
+      <canvas id="categoryDonut" width="180" height="180"></canvas>
+      <div class="donut-center">
+        <span class="donut-number">{{ stats.category_dist|length }}</span>
+        <span class="donut-sub">catégories</span>
+      </div>
+    </div>
+    <div class="donut-legend" id="catLegend"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Répartition par auteur <span class="card-badge">Top 10</span></div>
+    <canvas id="authorChart" height="220"></canvas>
+  </div>
+</div>
+
+<!-- Publication trend -->
+<div class="card">
+  <div class="card-title">Tendance de publication <span class="card-badge">30 derniers jours</span></div>
+  <canvas id="trendChart" height="140"></canvas>
+</div>
+
+<!-- Top articles -->
+<div class="grid-2">
+  <div class="card">
+    <div class="card-title">🏆 Plus vus</div>
+    {% for a in top_by_views %}
+    <div class="top-row">
+      <span class="top-rank">{{ forloop.counter }}</span>
+      <span class="top-name"><a href="{% url 'analytics:article_detail' a.id %}">{{ a.title }}</a></span>
+      <span class="top-val">{{ a.reads }} <small>vues</small></span>
+    </div>
+    {% empty %}<div class="muted">—</div>
+    {% endfor %}
+  </div>
+  <div class="card">
+    <div class="card-title">💬 Plus commentés</div>
+    {% for a in top_by_comments %}
+    <div class="top-row">
+      <span class="top-rank">{{ forloop.counter }}</span>
+      <span class="top-name"><a href="{% url 'analytics:article_detail' a.id %}">{{ a.title }}</a></span>
+      <span class="top-val">{{ a.comments }} <small>commentaires</small></span>
+    </div>
+    {% empty %}<div class="muted">—</div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- All articles table -->
+<h2 class="section-title">Tous les articles</h2>
+<div class="card table-card">
+  <table class="dash-table">
+    <thead>
+      <tr>
+        <th>Titre</th>
+        <th>Statut</th>
+        <th>Catégorie</th>
+        <th>Auteur</th>
+        <th>Publié le</th>
+        <th>Vues</th>
+        <th>Commentaires</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in articles %}
+      <tr>
+        <td class="td-title">
+          <a href="{% url 'analytics:article_detail' a.id %}">{{ a.title }}</a>
+        </td>
+        <td>
+          {% if a.status == 'published' %}
+          <span class="status-chip published">Publié</span>
+          {% elif a.status == 'deleted' %}
+          <span class="status-chip" style="background:#fde8e8;color:#b5534a">Supprimé</span>
+          {% else %}
+          <span class="status-chip draft">Brouillon</span>
+          {% endif %}
+        </td>
+        <td><span class="cat-chip">{{ a.category_label }}</span></td>
+        <td>{{ a.display_name }}</td>
+        <td>{{ a.published_at|truncatechars:10|default:"—" }}</td>
+        <td>{{ a.total_reads }}</td>
+        <td>{{ a.comment_count }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" class="muted">Aucun article.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+const categoryDist = {{ category_dist_json|safe }};
+const authorDist   = {{ author_dist_json|safe }};
+const trendData    = {{ publication_trend_json|safe }};
+
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.plugins.legend.display = false;
+const BROWN = '#c07a50';
+const BROWN_LIGHT = 'rgba(192,122,80,.15)';
+
+// Category donut
+new Chart(document.getElementById('categoryDonut'), {
+  type: 'doughnut',
+  data: {
+    labels: categoryDist.map(c => c.category),
+    datasets: [{ data: categoryDist.map(c => c.count), backgroundColor: categoryDist.map(c => c.color), borderWidth: 0 }]
+  },
+  options: { cutout: '72%', plugins: { legend: { display: false } } }
+});
+const catLegend = document.getElementById('catLegend');
+categoryDist.slice(0,8).forEach(c => {
+  catLegend.innerHTML += '<div class="legend-item"><span class="dot" style="background:'+c.color+'"></span>'+c.category.substring(0,18)+'… <strong>'+c.pct+' %</strong></div>';
+});
+
+// Author bar chart
+new Chart(document.getElementById('authorChart'), {
+  type: 'bar',
+  data: {
+    labels: authorDist.map(a => a.display_name.substring(0,16)),
+    datasets: [{ data: authorDist.map(a => a.count), backgroundColor: authorDist.map(a => a.color), borderRadius: 4 }]
+  },
+  options: {
+    indexAxis: 'y',
+    scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } }, y: { grid: { display: false } } },
+    plugins: { legend: { display: false } }
+  }
+});
+
+// Publication trend
+function shortLabels(data) {
+  return data.map(d => { const p = d.date.split('-'); return p[2]+'/'+p[1]; });
+}
+new Chart(document.getElementById('trendChart'), {
+  type: 'bar',
+  data: { labels: shortLabels(trendData), datasets: [{ data: trendData.map(d => d.count), backgroundColor: BROWN, borderRadius: 3 }] },
+  options: { scales: { x: { grid:{display:false}, ticks:{maxTicksLimit:15} }, y: { beginAtZero:true, ticks:{stepSize:1} } } }
+});
+</script>
 {% endblock %}

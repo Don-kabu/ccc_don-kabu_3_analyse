@@ -20,6 +20,15 @@ logger = logging.getLogger(__name__)
 SERVER = getattr(settings, 'SERVER_BASE_URL', 'http://localhost:8001')
 
 
+
+
+
+
+
+
+
+
+
 def _post(path, data):
     """POST JSON to the server.  Silently ignores network errors."""
     url = f'{SERVER}{path}'
@@ -31,6 +40,12 @@ def _post(path, data):
         urlopen(req, timeout=3)
     except (URLError, OSError, ValueError) as exc:
         logger.debug('sync POST %s failed: %s', url, exc)
+
+
+
+
+
+
 
 
 # ──────────────────────────── individual sync helpers ─────────────────────
@@ -48,6 +63,17 @@ def sync_user(user):
     })
 
 
+
+
+
+
+
+
+
+
+
+
+
 def sync_tag(tag):
     """Push a Tag instance."""
     _post('/api/sync/tag/', {
@@ -57,11 +83,19 @@ def sync_tag(tag):
     })
 
 
+
+
+
+
+
+
+
+
 def sync_article(article):
     """Push an Article instance (including its tags)."""
     _post('/api/sync/article/', {
         'client_id': article.pk,
-        'author_client_id': article.author_id,
+        'author_id': article.author_id,
         'title': article.title,
         'slug': article.slug,
         'category': article.category,
@@ -83,6 +117,15 @@ def sync_article(article):
     })
 
 
+
+
+
+
+
+
+
+
+
 def sync_article_delete(article_id):
     """Notify the server that an article was deleted."""
     _post('/api/sync/article-delete/', {
@@ -90,18 +133,36 @@ def sync_article_delete(article_id):
     })
 
 
+
+
+
+
+
+
+
+
+
 def sync_comment(comment):
     """Push a ReaderComment instance."""
     _post('/api/sync/comment/', {
         'client_id': comment.pk,
-        'article_client_id': comment.article_id,
-        'parent_client_id': comment.parent_id,
+        'article_id': comment.article_id,
+        'parent_id': comment.parent_id,
         'name': comment.name,
         'email': comment.email,
         'message': comment.message,
         'created_at': comment.created_at.isoformat() if comment.created_at else None,
         'is_approved': comment.is_approved,
     })
+
+
+
+
+
+
+
+
+
 
 
 def sync_article_analytics(analytics):
@@ -119,6 +180,15 @@ def sync_article_analytics(analytics):
     })
 
 
+
+
+
+
+
+
+
+
+
 def sync_analytics_event(event):
     """Push an AnalyticsEvent instance."""
     _post('/api/sync/event/', {
@@ -129,6 +199,15 @@ def sync_analytics_event(event):
         'session_id': event.session_id,
         'created_at': event.created_at.isoformat() if event.created_at else None,
     })
+
+
+
+
+
+
+
+
+
 
 
 def sync_action_log(log):
@@ -147,6 +226,15 @@ def sync_action_log(log):
         'payload': log.payload,
         'created_at': log.created_at.isoformat() if log.created_at else None,
     })
+
+
+
+
+
+
+
+
+
 
 
 # ──────────────────────────── full sync (initial bootstrap) ───────────────
@@ -177,7 +265,7 @@ def full_sync():
     for a in Article.objects.prefetch_related('tags').all():
         articles.append({
             'client_id': a.pk,
-            'author_client_id': a.author_id,
+            'author_id': a.author_id,
             'title': a.title,
             'slug': a.slug,
             'category': a.category,
@@ -202,8 +290,8 @@ def full_sync():
     for c in ReaderComment.objects.all():
         comments.append({
             'client_id': c.pk,
-            'article_client_id': c.article_id,
-            'parent_client_id': c.parent_id,
+            'article_id': c.article_id,
+            'parent_id': c.parent_id,
             'name': c.name,
             'email': c.email,
             'message': c.message,
@@ -215,7 +303,7 @@ def full_sync():
     for an in ArticleAnalytics.objects.all():
         analytics_list.append({
             'client_id': an.pk,
-            'article_client_id': an.article_id,
+            'article_id': an.article_id,
             'total_reads': an.total_reads,
             'total_seconds_read': an.total_seconds_read,
             'intro_seconds': an.intro_seconds,
@@ -229,7 +317,7 @@ def full_sync():
     for e in AnalyticsEvent.objects.all():
         events.append({
             'client_id': e.pk,
-            'article_client_id': e.article_id,
+            'article_id': e.article_id,
             'section': e.section,
             'duration_seconds': e.duration_seconds,
             'session_id': e.session_id,
@@ -242,8 +330,8 @@ def full_sync():
             'client_id': l.pk,
             'action': l.action,
             'actor_type': l.actor_type,
-            'user_client_id': l.user_id,
-            'article_client_id': l.article_id,
+            'user_id': l.user_id,
+            'article_id': l.article_id,
             'request_path': l.request_path,
             'request_method': l.request_method,
             'ip_address': l.ip_address,

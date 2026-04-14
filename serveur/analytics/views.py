@@ -34,11 +34,13 @@ def api_docs(request):
 
 def _detect_device(user_agent: str) -> str:
     ua = user_agent.lower()
-    if 'tablet' in ua or 'ipad' in ua:
-        return 'Tablet'
-    if 'mobile' in ua or 'android' in ua or 'iphone' in ua:
-        return 'Mobile'
-    return 'Desktop'
+    if 'iphone' in ua:
+        return 'iPhone'
+    if 'ipad' in ua or 'tablet' in ua:
+        return 'Tablette'
+    if 'android' in ua:
+        return 'Android'
+    return 'Ordinateur'
 
 
 def _detect_browser(user_agent: str) -> str:
@@ -339,6 +341,34 @@ def article_detail(request, pk):
         raise Http404
 
     last7, days_labels = db_utils.get_article_last7_reads(pk)
+    daily_reads_30 = db_utils.get_article_daily_reads_30(pk)
+    engagement = db_utils.get_article_engagement(pk)
+    keywords = db_utils.get_article_top_keywords(pk, top_n=10)
+
+    # Article age: delta between creation date and today
+    from datetime import date as _date
+    article_age_days = None
+    article_age_label = '—'
+    if article.get('created_at'):
+        try:
+            created = date.fromisoformat(article['created_at'][:10])
+            delta = (_date.today() - created).days
+            article_age_days = delta
+            if delta == 0:
+                article_age_label = "Aujourd'hui"
+            elif delta == 1:
+                article_age_label = '1 jour'
+            elif delta < 30:
+                article_age_label = f'{delta} jours'
+            elif delta < 365:
+                months = delta // 30
+                article_age_label = f'{months} mois'
+            else:
+                years = delta // 365
+                months = (delta % 365) // 30
+                article_age_label = f'{years} an{"s" if years > 1 else ""}{"  " + str(months) + " mois" if months else ""}'
+        except (ValueError, TypeError):
+            pass
 
     wc = article['word_count'] or 1200
     structure = {
@@ -353,14 +383,34 @@ def article_detail(request, pk):
         'days_labels': days_labels,
         'structure': structure,
         'breadcrumb_category': (article['tags'] or '').split(',')[0] or 'Pedagogie',
+        'engagement': engagement,
+        'keywords': keywords,
+        'daily_reads_30_json': json.dumps(daily_reads_30),
+        'sections_json': json.dumps(engagement['sections']),
+        'article_age_label': article_age_label,
+        'article_age_days': article_age_days,
     }
     return render(request, 'analytics/article_detail.html', context)
 
 
 @login_required
 def article_list(request):
-    articles = db_utils.get_articles_list()
-    return render(request, 'analytics/article_list.html', {'articles': articles})
+    stats = db_utils.get_article_list_stats()
+    articles = db_utils.get_all_articles_full_list()
+    publication_trend = db_utils.get_publication_trend(30)
+    top_by_views = db_utils.get_top_articles_by_views(5)
+    top_by_comments = db_utils.get_top_articles_by_comments(5)
+
+    context = {
+        'stats': stats,
+        'articles': articles,
+        'publication_trend_json': json.dumps(publication_trend),
+        'top_by_views': top_by_views,
+        'top_by_comments': top_by_comments,
+        'category_dist_json': json.dumps(stats['category_dist']),
+        'author_dist_json': json.dumps(stats['author_dist']),
+    }
+    return render(request, 'analytics/article_list.html', context)
 
 
 # =========================================================================
@@ -409,12 +459,20 @@ def auteur_detail(request, pk):
 def utilisateurs(request):
     users = db_utils.get_all_users_activity()
     actions_daily = db_utils.get_user_actions_daily(30)
+    overview = db_utils.get_user_overview_stats()
+    registrations_daily = db_utils.get_registrations_daily(30)
+    top_active = db_utils.get_top_active_users(10)
 
     context = {
         'users': users,
-        'total_users': len(users),
-        'active_users': sum(1 for u in users if u['article_count'] > 0),
+        'total_users': overview['total'],
+        'active_users': overview['active'],
+        'inactive_users': overview['inactive'],
+        'role_dist': overview['role_dist'],
+        'role_dist_json': json.dumps(overview['role_dist']),
         'actions_daily_json': json.dumps(actions_daily),
+        'registrations_daily_json': json.dumps(registrations_daily),
+        'top_active': top_active,
     }
     return render(request, 'analytics/utilisateurs.html', context)
 

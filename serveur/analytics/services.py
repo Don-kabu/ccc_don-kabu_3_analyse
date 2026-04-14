@@ -80,12 +80,14 @@ def _parse_ua(ua: str) -> tuple[str, str, str]:
     else:
         browser = 'Autre'
     # Device
-    if 'mobile' in ua_lower or 'iphone' in ua_lower:
-        device = 'Mobile'
+    if 'iphone' in ua_lower:
+        device = 'iPhone'
     elif 'ipad' in ua_lower or 'tablet' in ua_lower:
-        device = 'Tablet'
+        device = 'Tablette'
+    elif 'android' in ua_lower:
+        device = 'Android'
     else:
-        device = 'Desktop'
+        device = 'Ordinateur'
     return os_name, browser, device
 
 
@@ -525,6 +527,7 @@ def get_article_detail(pk: int) -> dict | None:
         'content': a.content,
         'conclusion': a.conclusion,
         'published_at': a.published_at.isoformat() if a.published_at else '',
+        'created_at': a.created_at.isoformat() if a.created_at else '',
         'teacher_id': a.author.id if a.author else None,
         'teacher_client_id': a.author.client_id if a.author else None,
         'username': a.author.username if a.author else '',
@@ -1033,3 +1036,278 @@ def get_dashboard_for_period(
         'top_articles': top_articles,
         'top_authors': top_authors,
     }
+
+
+# ---------------------------------------------------------------------------
+# Article list statistics
+# ---------------------------------------------------------------------------
+
+def get_article_list_stats() -> dict:
+    """Return summary counts for the article list view."""
+    total = ClientArticle.objects.count()
+    published = ClientArticle.objects.filter(status='published').count()
+    draft = ClientArticle.objects.filter(status='draft').count()
+    deleted = ClientArticle.objects.filter(status='deleted').count()
+
+    # Category breakdown (all statuses)
+    cat_rows = (
+        ClientArticle.objects
+        .exclude(category='')
+        .values('category')
+        .annotate(cnt=Count('id'))
+        .order_by('-cnt')
+    )
+    colors = [
+        '#e07a5f', '#3d405b', '#81b29a', '#f2cc8f', '#264653',
+        '#2a9d8f', '#e9c46a', '#f4a261', '#e76f51', '#606c38',
+    ]
+    total_cat = sum(r['cnt'] for r in cat_rows) or 1
+    category_dist = [
+        {
+            'category': ClientArticle.CATEGORY_LABELS.get(r['category'], r['category']),
+            'count': r['cnt'],
+            'pct': round(r['cnt'] / total_cat * 100),
+            'color': colors[i % len(colors)],
+        }
+        for i, r in enumerate(cat_rows)
+    ]
+
+    # Author breakdown
+    author_rows = (
+        ClientArticle.objects
+        .filter(author__isnull=False)
+        .values('author__id', 'author__first_name', 'author__last_name', 'author__username')
+        .annotate(cnt=Count('id'))
+        .order_by('-cnt')[:10]
+    )
+    author_dist = []
+    for r in author_rows:
+        full = f"{r['author__first_name']} {r['author__last_name']}".strip()
+        author_dist.append({
+            'display_name': full or r['author__username'],
+            'count': r['cnt'],
+            'color': colors[len(author_dist) % len(colors)],
+        })
+
+    return {
+        'total': total,
+        'published': published,
+        'draft': draft,
+        'deleted': deleted,
+        'category_dist': category_dist,
+        'author_dist': author_dist,
+    }
+
+
+def get_all_articles_full_list() -> list[dict]:
+    """Return all articles (all statuses) with view and comment counts."""
+    articles = (
+        ClientArticle.objects
+        .select_related('author')
+        .prefetch_related('tags')
+        .annotate(
+            total_reads_val=Count('action_logs', filter=Q(action_logs__action='article_view')),
+            comment_count=Count('comments', filter=Q(comments__is_approved=True)),
+        )
+        .order_by('-created_at')
+    )
+    result = []
+    for a in articles:
+        result.append({
+            'id': a.id,
+            'title': a.title,
+            'status': a.status,
+            'category_label': a.category_label,
+            'display_name': a.author.display_name if a.author else '—',
+            'published_at': a.published_at.isoformat() if a.published_at else '',
+            'created_at': a.created_at.isoformat() if a.created_at else '',
+            'total_reads': a.total_reads_val or 0,
+            'comment_count': a.comment_count or 0,
+            'tags': ', '.join(t.name for t in a.tags.all()),
+        })
+    return result
+
+
+def get_publication_trend(days: int = 30) -> list[dict]:
+    """Return daily publication counts for trend chart (all time, by month for >60 days)."""
+    since = date.today() - timedelta(days=days)
+    rows = (
+        ClientArticle.objects
+        .filter(published_at__isnull=False, published_at__date__gte=since)
+        .annotate(day=TruncDate('published_at'))
+        .values('day')
+        .annotate(cnt=Count('id'))
+    )
+    data = {r['day'].isoformat(): r['cnt'] for r in rows}
+    return _fill_days(data, days)
+
+
+def get_top_articles_by_views(limit: int = 5) -> list[dict]:
+    rows = (
+        ClientArticle.objects
+        .filter(status='published')
+        .annotate(reads=Count('action_logs', filter=Q(action_logs__action='article_view')))
+        .order_by('-reads')[:limit]
+        .values('id', 'title', 'reads')
+    )
+    return [{'id': r['id'], 'title': r['title'], 'reads': r['reads'] or 0} for r in rows]
+
+
+def get_top_articles_by_comments(limit: int = 5) -> list[dict]:
+    rows = (
+        ClientArticle.objects
+        .filter(status='published')
+        .annotate(comment_count=Count('comments', filter=Q(comments__is_approved=True)))
+        .order_by('-comment_count')[:limit]
+        .values('id', 'title', 'comment_count')
+    )
+    return [{'id': r['id'], 'title': r['title'], 'comments': r['comment_count']} for r in rows]
+
+
+# ---------------------------------------------------------------------------
+# Article detail – extra stats
+# ---------------------------------------------------------------------------
+
+def get_article_comment_count(pk: int) -> int:
+    return ClientReaderComment.objects.filter(article_id=pk, is_approved=True).count()
+
+
+def get_article_engagement(pk: int) -> dict:
+    """Return engagement metrics for a specific article."""
+    # Views and shares come from ClientActionLog (reliable page-view tracking)
+    total_reads = ClientActionLog.objects.filter(article_id=pk, action='article_view').count()
+    share_count = ClientActionLog.objects.filter(article_id=pk, action='article_share').count()
+    comment_count = ClientReaderComment.objects.filter(article_id=pk, is_approved=True).count()
+
+    # Engagement rate: (comments + shares) / reads * 100
+    engagement_rate = round((comment_count + share_count) / total_reads * 100, 1) if total_reads else 0
+
+    # Section time breakdown from ClientArticleAnalytics (reading-time analytics)
+    analytics = ClientArticleAnalytics.objects.filter(article_id=pk).first()
+    total_seconds = analytics.total_seconds_read if analytics else 0
+    sections = {}
+    if analytics:
+        sections = {
+            'Introduction': analytics.intro_seconds,
+            'Objectifs': analytics.objectives_seconds,
+            'Contenu': analytics.content_seconds,
+            'Conclusion': analytics.conclusion_seconds,
+            'Ressources': analytics.resources_seconds,
+        }
+
+    return {
+        'total_reads': total_reads,
+        'comment_count': comment_count,
+        'share_count': share_count,
+        'engagement_rate': engagement_rate,
+        'avg_seconds': round(total_seconds / total_reads, 1) if total_reads else 0,
+        'sections': sections,
+    }
+
+
+def get_article_daily_reads_30(pk: int) -> list[dict]:
+    """Return 30-day daily read counts for an article."""
+    since = date.today() - timedelta(days=30)
+    rows = (
+        ClientActionLog.objects
+        .filter(article_id=pk, action='article_view', created_at__date__gte=since)
+        .annotate(day=TruncDate('created_at'))
+        .values('day')
+        .annotate(cnt=Count('id'))
+    )
+    data = {r['day'].isoformat(): r['cnt'] for r in rows}
+    return _fill_days(data, 30)
+
+
+def get_article_top_keywords(pk: int, top_n: int = 10) -> list[dict]:
+    """Extract top keywords from article content (simple frequency analysis)."""
+    import re
+    try:
+        a = ClientArticle.objects.get(pk=pk)
+    except ClientArticle.DoesNotExist:
+        return []
+
+    text = ' '.join(filter(None, [a.title, a.intro, a.content, a.conclusion]))
+    words = re.findall(r'\b[a-zA-ZÀ-ÿ]{4,}\b', text.lower())
+
+    # French stopwords
+    stopwords = {
+        'pour', 'dans', 'avec', 'cette', 'tout', 'plus', 'bien', 'aussi', 'mais',
+        'comme', 'peut', 'entre', 'elle', 'nous', 'vous', 'sont', 'être', 'avoir',
+        'faire', 'leur', 'leurs', 'très', 'plus', 'même', 'tous', 'toutes', 'dont',
+        'when', 'that', 'this', 'with', 'from', 'they', 'have', 'will', 'been',
+        'your', 'which', 'there', 'what', 'each', 'other', 'then', 'than', 'were',
+        'quand', 'donc', 'ainsi', 'sans', 'lors', 'après', 'avant', 'sous', 'encore',
+        'votre', 'notre', 'leurs', 'autre', 'bonne', 'petite', 'grand',
+    }
+    counts = {}
+    for w in words:
+        if w not in stopwords:
+            counts[w] = counts.get(w, 0) + 1
+
+    sorted_kw = sorted(counts.items(), key=lambda x: -x[1])[:top_n]
+    max_count = sorted_kw[0][1] if sorted_kw else 1
+    return [{'word': w, 'count': c, 'pct': round(c / max_count * 100)} for w, c in sorted_kw]
+
+
+# ---------------------------------------------------------------------------
+# User statistics – extended
+# ---------------------------------------------------------------------------
+
+def get_user_overview_stats() -> dict:
+    """Return overview stats for the utilisateurs view."""
+    total = ClientUser.objects.count()
+    active = ClientUser.objects.filter(is_active=True).count()
+    inactive = ClientUser.objects.filter(is_active=False).count()
+
+    # Role breakdown based on activity
+    with_published = set(
+        ClientArticle.objects.filter(status='published')
+        .values_list('author_id', flat=True).distinct()
+    )
+    with_draft = set(
+        ClientArticle.objects.filter(status='draft')
+        .values_list('author_id', flat=True).distinct()
+    ) - with_published
+
+    admins = 0  # No role field in mirror; approximate from Django superusers if needed
+    editors = len(with_published)
+    contributors = len(with_draft)
+    readers = total - editors - contributors
+
+    role_dist = [
+        {'label': 'Éditeurs (publiés)', 'count': editors, 'color': '#e07a5f'},
+        {'label': 'Contributeurs', 'count': contributors, 'color': '#81b29a'},
+        {'label': 'Lecteurs', 'count': max(readers, 0), 'color': '#f2cc8f'},
+    ]
+    role_dist = [r for r in role_dist if r['count'] > 0]
+
+    return {
+        'total': total,
+        'active': active,
+        'inactive': inactive,
+        'role_dist': role_dist,
+    }
+
+
+def get_top_active_users(limit: int = 10) -> list[dict]:
+    """Return most active users ranked by publications + comments + reads."""
+    users = ClientUser.objects.all()
+    result = []
+    for u in users:
+        published = ClientArticle.objects.filter(author=u, status='published').count()
+        reads = ClientArticleAnalytics.objects.filter(
+            article__author=u
+        ).aggregate(t=Sum('total_reads'))['t'] or 0
+        comments = ClientReaderComment.objects.filter(article__author=u).count()
+        result.append({
+            'id': u.id,
+            'display_name': u.display_name,
+            'username': u.username,
+            'published': published,
+            'reads': reads,
+            'comments': comments,
+            'score': published * 10 + reads + comments,
+        })
+    result.sort(key=lambda x: -x['score'])
+    return result[:limit]

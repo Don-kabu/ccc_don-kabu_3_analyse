@@ -317,13 +317,15 @@ def sync_action_log(request):
         return JsonResponse({'ok': False, 'error': 'missing client_id'}, status=400)
 
     # Resolve optional FKs
+    # Client sends 'user_client_id' in real-time sync, 'user_id' in full_sync
     user = None
-    user_cid = data.get('user_id')
+    user_cid = data.get('user_client_id') or data.get('user_id')
     if user_cid:
         user = ClientUser.objects.filter(client_id=user_cid).first()
 
     article = None
-    article_cid = data.get('article_id')
+    # Client sends 'article_client_id' in real-time sync, 'article_id' in full_sync
+    article_cid = data.get('article_client_id') or data.get('article_id')
     if article_cid:
         article = ClientArticle.objects.filter(client_id=article_cid).first()
 

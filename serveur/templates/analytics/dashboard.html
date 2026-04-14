@@ -173,11 +173,19 @@
   </div>
   <div class="card">
     <div class="card-title">Navigateurs <span class="card-badge">30j</span></div>
-    <canvas id="browserChart" height="180"></canvas>
+    <div class="donut-wrap">
+      <canvas id="browserChart" width="180" height="180"></canvas>
+      <div class="donut-center" id="browserCenter"></div>
+    </div>
+    <div class="donut-legend" id="browserLegend"></div>
   </div>
   <div class="card">
     <div class="card-title">Type d'appareil <span class="card-badge">30j</span></div>
-    <canvas id="deviceChart" height="180"></canvas>
+    <div class="donut-wrap">
+      <canvas id="deviceChart" width="180" height="180"></canvas>
+      <div class="donut-center" id="deviceCenter"></div>
+    </div>
+    <div class="donut-legend" id="deviceLegend"></div>
   </div>
 </div>
 
@@ -192,7 +200,7 @@
     <div class="card-label">Commentaire le plus répondu</div>
     {% if comment_overview.most_replied %}
     <div class="card-big-value">{{ comment_overview.most_replied.reply_count }} réponses</div>
-    <div class="card-sub">par {{ comment_overview.most_replied.name }} sur <a href="#">{{ comment_overview.most_replied.article_title }}</a></div>
+    <div class="card-sub">par {{ comment_overview.most_replied.name }} sur <a href="{% url 'analytics:article_detail' comment_overview.most_replied.article_id %}" style="text-decoration:none;color:inherit;font-weight:600">{{ comment_overview.most_replied.article_title }}</a></div>
     {% else %}
     <div class="card-sub">Aucune réponse</div>
     {% endif %}
@@ -204,7 +212,7 @@
     <div class="card-title">Articles les plus commentés</div>
     {% for item in comment_overview.top_commented %}
     <div class="comment-row">
-      <span class="comment-article-title">{{ item.title }}</span>
+      <span class="comment-article-title"><a href="{% url 'analytics:article_detail' item.id %}" style="text-decoration:none;color:inherit">{{ item.title }}</a></span>
       <span class="comment-badge">{{ item.comment_count }}</span>
     </div>
     {% empty %}
@@ -215,7 +223,7 @@
     <div class="card-title">Commentaires récents</div>
     {% for c in comment_overview.recent_comments %}
     <div class="recent-comment">
-      <div class="rc-header"><strong>{{ c.name }}</strong> <span class="rc-meta">— sur <a href="#">{{ c.article_title }}</a></span></div>
+      <div class="rc-header"><strong>{{ c.name }}</strong> <span class="rc-meta">— sur <a href="{% url 'analytics:article_detail' c.article_id %}" style="text-decoration:none;color:inherit;font-weight:600">{{ c.article_title }}</a></span></div>
       <div class="rc-body">{{ c.message|truncatechars:80 }}</div>
     </div>
     {% empty %}
@@ -232,7 +240,7 @@
     {% for a in top_most_read %}
     <div class="top-row">
       <span class="top-rank">{{ forloop.counter }}</span>
-      <span class="top-name">{{ a.title }}</span>
+      <span class="top-name"><a href="{% url 'analytics:article_detail' a.id %}" style="text-decoration:none;color:inherit">{{ a.title }}</a></span>
       <span class="top-val">{{ a.total_reads }} <small>lectures</small></span>
     </div>
     {% empty %}
@@ -244,7 +252,7 @@
     {% for a in top_most_commented %}
     <div class="top-row">
       <span class="top-rank">{{ forloop.counter }}</span>
-      <span class="top-name">{{ a.title }}</span>
+      <span class="top-name"><a href="{% url 'analytics:article_detail' a.id %}" style="text-decoration:none;color:inherit">{{ a.title }}</a></span>
       <span class="top-val">{{ a.comment_count }} <small>commentaires</small></span>
     </div>
     {% empty %}
@@ -256,7 +264,7 @@
     {% for a in top_most_shared %}
     <div class="top-row">
       <span class="top-rank">{{ forloop.counter }}</span>
-      <span class="top-name">{{ a.title }}</span>
+      <span class="top-name"><a href="{% url 'analytics:article_detail' a.id %}" style="text-decoration:none;color:inherit">{{ a.title }}</a></span>
       <span class="top-val">{{ a.share_count }} <small>partages</small></span>
     </div>
     {% empty %}
@@ -284,7 +292,7 @@
     <tbody>
       {% for a in all_articles %}
       <tr>
-        <td class="td-title">{{ a.title }}</td>
+        <td class="td-title"><a href="{% url 'analytics:article_detail' a.id %}" style="text-decoration:none;color:inherit">{{ a.title }}</a></td>
         <td><span class="cat-chip">{{ a.category_label }}</span></td>
         <td>
           {% if a.status == 'published' %}
@@ -399,19 +407,51 @@ new Chart(document.getElementById('osChart'), {
   options: { scales: { x: { grid:{display:false} }, y: { beginAtZero:true } } }
 });
 
-// Browsers
-new Chart(document.getElementById('browserChart'), {
-  type: 'bar',
-  data: { labels: browserData.map(d=>d.label), datasets: [{ data: browserData.map(d=>d.count), backgroundColor: COLORS.slice(0,browserData.length), borderRadius:3 }] },
-  options: { scales: { x: { grid:{display:false} }, y: { beginAtZero:true } } }
-});
+// Browsers – doughnut
+(function(){
+  const browserColors = ['#264653','#2a9d8f','#e9c46a','#f4a261','#e76f51'];
+  new Chart(document.getElementById('browserChart'), {
+    type: 'doughnut',
+    data: {
+      labels: browserData.map(d=>d.label),
+      datasets: [{ data: browserData.map(d=>d.count), backgroundColor: browserColors.slice(0,browserData.length), borderWidth:0 }]
+    },
+    options: { cutout:'72%', plugins:{ legend:{display:false} } }
+  });
+  const domBr = document.getElementById('browserLegend');
+  if (domBr) {
+    browserData.forEach((d,i) => {
+      domBr.innerHTML += '<div class="legend-item"><span class="dot" style="background:'+browserColors[i%browserColors.length]+'"></span>'+d.label+' <strong>'+d.pct+' %</strong></div>';
+    });
+  }
+  const centerBr = document.getElementById('browserCenter');
+  if (centerBr && browserData.length) {
+    centerBr.innerHTML = '<span class="donut-number">'+browserData[0].label+'</span><span class="donut-sub">principal</span>';
+  }
+})();
 
-// Devices
-new Chart(document.getElementById('deviceChart'), {
-  type: 'bar',
-  data: { labels: deviceData.map(d=>d.label), datasets: [{ data: deviceData.map(d=>d.count), backgroundColor: COLORS.slice(0,deviceData.length), borderRadius:3 }] },
-  options: { scales: { x: { grid:{display:false} }, y: { beginAtZero:true } } }
-});
+// Devices – doughnut
+(function(){
+  const deviceColors = ['#e07a5f','#81b29a','#3d405b','#f2cc8f'];
+  new Chart(document.getElementById('deviceChart'), {
+    type: 'doughnut',
+    data: {
+      labels: deviceData.map(d=>d.label),
+      datasets: [{ data: deviceData.map(d=>d.count), backgroundColor: deviceColors.slice(0,deviceData.length), borderWidth:0 }]
+    },
+    options: { cutout:'72%', plugins:{ legend:{display:false} } }
+  });
+  const domDev = document.getElementById('deviceLegend');
+  if (domDev) {
+    deviceData.forEach((d,i) => {
+      domDev.innerHTML += '<div class="legend-item"><span class="dot" style="background:'+deviceColors[i%deviceColors.length]+'"></span>'+d.label+' <strong>'+d.pct+' %</strong></div>';
+    });
+  }
+  const centerDev = document.getElementById('deviceCenter');
+  if (centerDev && deviceData.length) {
+    centerDev.innerHTML = '<span class="donut-number">'+deviceData[0].pct+'%</span><span class="donut-sub">'+deviceData[0].label+'</span>';
+  }
+})();
 
 // ═══════════ Period charts (only rendered when period_data is present) ═══════════
 {% if period_data %}

@@ -11,13 +11,13 @@ Le projet est composé de **deux applications Django distinctes** qui communique
 | Composant | Dossier | Port | Rôle |
 |-----------|---------|------|------|
 | **Client** (CMS) | `Client_blog_post/` | `8000` | Publication, lecture, commentaires, tracking |
-| **Serveur** (Analytics) | `serveur/` | `8001` | Réception des données, dashboards analytiques avancés |
+| **Serveur** (Analytics) | `serveur/` | `(5000)` | Réception des données, dashboards analytiques avancés |
 
 ### Flux de données
 
 ```
 ┌──────────────────────┐       HTTP POST (JSON)       ┌──────────────────────┐
-│   CLIENT (port 8000) │ ──────────────────────────▶  │  SERVEUR (port 8001) │
+│   CLIENT (port 8000) │ ──────────────────────────▶  │  SERVEUR (port 5000) │
 │                      │                               │                      │
 │  blog/views.py       │  ─ signup → sync_user         │  analytics/api.py    │
 │                      │  ─ article CRUD → sync_article│                      │
@@ -42,7 +42,7 @@ cd serveur
 python manage.py migrate
 
 # 3. Démarrer le serveur analytique
-python manage.py runserver 8001
+python manage.py runserver 5000
 
 # 4. Dans un 2e terminal — Démarrer le client
 cd Client_blog_post
@@ -229,7 +229,7 @@ Tous les endpoints sont en `POST`, acceptent du JSON, et répondent `{"ok": true
 ```json
 {
   "client_id": 42,
-  "author_client_id": 3,
+  "author_id": 3,
   "title": "Les volcans expliqués",
   "slug": "les-volcans-expliques",
   "category": "sciences_amusantes",

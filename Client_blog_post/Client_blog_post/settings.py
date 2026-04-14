@@ -125,9 +125,11 @@ MEDIA_ROOT = BASE_DIR / 'media'
 LOGIN_REDIRECT_URL = 'blog:author_dashboard'
 LOGOUT_REDIRECT_URL = 'blog:home'
 
-ANALYTICS_ENDPOINT = os.getenv('ANALYTICS_ENDPOINT', 'https://localhost:5000/track/')
-ACTION_LOG_ENDPOINT = os.getenv('ACTION_LOG_ENDPOINT', ANALYTICS_ENDPOINT)
-SERVER_BASE_URL = os.getenv('SERVER_BASE_URL', 'http://localhost:5000')
+SERVER_BASE_URL = "http://127.0.0.1:5000"
+
+# Legacy endpoints
+ANALYTICS_ENDPOINT   = SERVER_BASE_URL + "/api/analytics/"
+ACTION_LOG_ENDPOINT  = SERVER_BASE_URL + "/api/action-log/"
 
 
 # Prevent RequestDataTooBig for rich article bodies while keeping a sane limit.
